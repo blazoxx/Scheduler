@@ -1,367 +1,69 @@
-```md
-# 📅 AI Appointment Scheduler SaaS
+# Appointment Scheduler
 
-An intelligent appointment scheduling platform powered by AI that automatically manages bookings, availability, reminders, and calendar synchronization.
+Scheduler is a work-in-progress appointment scheduling app with a Next.js frontend and a FastAPI backend. The current codebase is a lightweight scaffold: the frontend shows a backend status message, and the backend exposes a simple root endpoint for local development.
 
-The system aims to eliminate manual scheduling by allowing users and businesses to automate appointment management through an AI-powered assistant.
+## What’s in the repo
 
----
+- `client/` - Next.js app router frontend built with TypeScript, Tailwind CSS, and Axios
+- `server/` - FastAPI backend with CORS configured for local development
+- `docs/` - project notes and supporting documentation
 
-## 🚀 Overview
+## Current behavior
 
-AI Appointment Scheduler is a SaaS platform designed for:
+- The frontend loads `http://127.0.0.1:8000/` on startup and displays the backend response
+- The backend responds at `/` with `{ "message": "AI Scheduler Backend Running" }`
+- CORS currently allows requests from `http://localhost:3000`
 
-- Doctors
-- Consultants
-- Coaches
-- Tutors
-- Salons
-- Freelancers
-- Agencies
-- Small Businesses
+## Tech stack
 
-The platform allows users to:
+- Frontend: Next.js 16, React 19, TypeScript, Tailwind CSS 4
+- Backend: FastAPI, Python, Pydantic, SQLAlchemy-ready environment
+- Tooling: ESLint, PostCSS, uvicorn
 
-- Manage availability
-- Accept bookings online
-- Prevent double-bookings
-- Automatically suggest free slots
-- Sync with external calendars
-- Send reminders and notifications
-- Handle rescheduling and cancellations
-- Use AI to optimize appointment management
+## Local setup
 
----
+### 1. Start the backend
 
-# ✨ Features
-
-## User Authentication
-
-- Sign Up / Login
-- Email Verification
-- Password Reset
-- JWT Authentication
-- Protected Routes
-
----
-
-## Dashboard
-
-Users can:
-
-- View upcoming appointments
-- Check today's schedule
-- Monitor booking statistics
-- Manage clients
-- Manage availability
-
----
-
-## Appointment Management
-
-### Create Appointment
-
-Users can:
-
-- Select service
-- Choose duration
-- Choose preferred date
-- Confirm booking
-
-### Update Appointment
-
-- Reschedule appointments
-- Change timings
-- Modify service details
-
-### Delete Appointment
-
-- Cancel bookings
-- Remove expired appointments
-
----
-
-## Availability Management
-
-Configure:
-
-- Working days
-- Start time
-- End time
-- Break periods
-- Holidays
-- Vacation mode
-
-Example:
-
-Monday-Friday
-
-09:00 AM - 05:00 PM
-
-Lunch Break:
-
-01:00 PM - 02:00 PM
-
----
-
-## Smart Slot Generation
-
-The AI system:
-
-- Reads existing bookings
-- Checks availability
-- Prevents conflicts
-- Finds optimal time slots
-- Suggests nearest available slots
-
-Example:
-
-Requested:
-
-10:00 AM
-
-Already occupied
-
-Suggested:
-
-10:30 AM
-11:00 AM
-11:30 AM
-
----
-
-## Calendar Integration
-
-Supports:
-
-- Google Calendar
-- Outlook Calendar
-- Apple Calendar
-
-Features:
-
-- Two-way synchronization
-- Automatic event creation
-- Conflict detection
-
----
-
-## Notifications
-
-### Email Notifications
-
-- Booking confirmation
-- Cancellation notice
-- Reschedule updates
-- Reminder emails
-
-### SMS Notifications
-
-- Upcoming appointment reminders
-- Cancellation alerts
-
----
-
-## Client Management
-
-Store:
-
-- Client name
-- Email
-- Phone number
-- Appointment history
-- Notes
-
----
-
-## AI Assistant
-
-The AI agent can:
-
-- Understand booking requests
-- Find suitable slots
-- Recommend times
-- Handle rescheduling
-- Answer appointment queries
-- Manage calendar conflicts
-
-Example:
-
-"Book a 30-minute meeting tomorrow afternoon."
-
-↓
-
-AI checks:
-
-- Existing appointments
-- Availability
-- Duration
-
-↓
-
-Returns:
-
-"Available slots:
-
-2:00 PM
-3:30 PM
-4:00 PM"
-
----
-
-# 🤖 AI Engine
-
-Future versions may include:
-
-- Natural language scheduling
-- Multi-agent architecture
-- Context-aware scheduling
-- Preference learning
-- Automatic optimization
-- Conflict resolution
-- Time zone handling
-
----
-
-# 🏗 Architecture
-
+```bash
+cd server
+uvicorn main:app --reload
 ```
 
-Frontend (Next.js + Tailwind)
-│
-├── Authentication
-├── Dashboard
-├── Booking UI
-├── Calendar UI
-└── Settings
+The API will be available at `http://127.0.0.1:8000`.
 
-↓
+### 2. Start the frontend
 
-Backend (FastAPI)
-
-├── Auth Service
-├── Appointment Service
-├── Availability Service
-├── Notification Service
-├── Calendar Service
-└── AI Scheduling Service
-
-↓
-
-Database (PostgreSQL)
-
-├── Users
-├── Clients
-├── Appointments
-├── Availability
-└── Notifications
-
-↓
-
-External Services
-
-├── Google Calendar API
-├── Email Service
-├── SMS Service
-└── AI Model API
-
+```bash
+cd client
+npm install
+npm run dev
 ```
 
----
+The app will be available at `http://localhost:3000`.
 
-# 🛠 Tech Stack
+## Development scripts
 
-## Frontend
+### Client
 
-- Next.js
-- TypeScript
-- TailwindCSS
-- ShadCN UI
-- Framer Motion
+- `npm run dev` - start the Next.js dev server
+- `npm run build` - build the production bundle
+- `npm run start` - run the production build
+- `npm run lint` - run ESLint
 
-## Backend
+### Server
 
-- FastAPI
-- Python
-- SQLAlchemy
-- Pydantic
+- `uvicorn main:app --reload` - start the FastAPI dev server
 
-## Database
+## Project status
 
-- PostgreSQL
+The repository is currently a foundation for a scheduling product. The README and code can grow together as features land, such as authentication, appointment CRUD, availability rules, calendar sync, reminders, and AI-assisted slot suggestions.
 
-## Authentication
+## Next steps
 
-- JWT
-- OAuth
-
-## AI
-
-- OpenAI API / Gemini API
-
-## Notifications
-
-- SMTP
-- Twilio
-
-## Deployment
-
-Frontend:
-
-- Vercel
-
-Backend:
-
-- Render / Railway
-
-Database:
-
-- Neon PostgreSQL
-
----
-
----
-
-# 🎯 Future Improvements
-
-- Voice booking assistant
-- WhatsApp integration
-- Zoom meeting links
-- Stripe subscriptions
-- Team scheduling
-- Multi-user organizations
-- Analytics dashboard
-- AI chat assistant
-- Timezone support
-- Recurring appointments
-- Role-based access control
-
----
-
-# 🔒 Security
-
-- JWT Authentication
-- Password hashing
-- Input validation
-- SQL Injection protection
-- CORS configuration
-- Rate limiting
-- Environment variables
-- Secure APIs
-
----
-
-# 🎯 Goal
-
-Build a production-ready AI-powered appointment scheduling platform that automates bookings, reduces scheduling conflicts, and provides an intelligent experience for both businesses and customers.
-
----
+1. Add environment variable examples for the client and server.
+2. Document the API routes as they are added.
+3. Replace the placeholder frontend with the first real scheduling flow.
 
 ## License
 
-MIT License
-
----
-
-Made with ❤️ using FastAPI, Next.js and AI.
-```
+MIT License if one is added to the repository.
