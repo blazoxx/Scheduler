@@ -7,9 +7,13 @@ import PublicBookingForm from "./PublicBookingForm";
 
 type Props = {
   userId: string;
+  username: string;
 };
 
-export default function BookingCalendar({ userId }: Props) {
+export default function BookingCalendar({
+  userId,
+  username,
+}: Props) {
   const [selectedDate, setSelectedDate] = useState("");
   const [slots, setSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -66,6 +70,7 @@ export default function BookingCalendar({ userId }: Props) {
       {selectedSlot && (
         <PublicBookingForm
           userId={userId}
+          username={username}
           selectedDate={selectedDate}
           selectedSlot={selectedSlot}
         />

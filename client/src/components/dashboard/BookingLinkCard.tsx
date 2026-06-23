@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
 type Props = {
   username: string;
@@ -10,11 +10,10 @@ export default function BookingLinkCard({
   username,
 }: Props) {
 
-  const [link, setLink] = useState("");
-
-  useEffect(() => {
-    setLink(`${window.location.origin}/book/${username}`);
-  }, [username]);
+  const link = useMemo(
+    () => `${window.location.origin}/book/${username}`,
+    [username]
+  );
 
   async function copyLink() {
     await navigator.clipboard.writeText(link);
