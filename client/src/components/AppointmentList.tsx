@@ -60,7 +60,17 @@ export default function AppointmentList() {
       return;
     }
 
-    setAppointments(data || []);
+    const sorted = [...(data || [])].sort((a, b) => {
+      const priority: Record<string, number> = {
+        scheduled: 0,
+        completed: 1,
+        cancelled: 2,
+      };
+
+      return priority[a.status] - priority[b.status];
+    });
+
+    setAppointments(sorted);
   }
 
   async function completeAppointment(id: string) {
@@ -102,6 +112,16 @@ export default function AppointmentList() {
     );
   }
 
+  if (appointments.length === 0) {
+    return (
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold">Appointments</h2>
+
+        <p className="mt-4 text-gray-500">No appointments yet.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 mt-8">
       <h2 className="text-2xl font-bold">Appointments</h2>
@@ -116,6 +136,8 @@ export default function AppointmentList() {
               <strong>{appointment.client_name}</strong>
             </p>
 
+            <p className="text-gray-400">{appointment.title}</p>
+
             <div className="mt-2">
               <StatusBadge status={appointment.status} />
             </div>
@@ -129,17 +151,26 @@ export default function AppointmentList() {
 
           <div className="flex gap-2">
             <button
+              disabled={appointment.status !== "scheduled"}
               onClick={() => completeAppointment(appointment.id)}
-              className="bg-green-500 text-white px-3 py-1 rounded"
+              className="bg-green-500 text-white px-3 py-1 rounded disabled:opacity-50"
             >
               Complete
             </button>
 
             <button
+              disabled={appointment.status !== "scheduled"}
               onClick={() => cancelAppointment(appointment.id)}
-              className="bg-red-500 text-white px-3 py-1 rounded"
+              className="bg-red-500 text-white px-3 py-1 rounded disabled:opacity-50"
             >
               Cancel
+            </button>
+
+            <button
+              onClick={() => deleteAppointment(appointment.id)}
+              className="bg-gray-700 text-white px-3 py-1 rounded"
+            >
+              Delete
             </button>
           </div>
         </div>
