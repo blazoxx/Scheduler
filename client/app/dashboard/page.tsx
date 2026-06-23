@@ -68,9 +68,17 @@ export default function Dashboard() {
 
     const appointments = data || [];
 
-    setToday(appointments.filter((a) => a.date === todayDate).length);
+    setToday(
+      appointments.filter(
+        (a) => a.status === "scheduled" && a.date === todayDate,
+      ).length,
+    );
 
-    setUpcoming(appointments.filter((a) => a.date > todayDate).length);
+    setUpcoming(
+      appointments.filter(
+        (a) => a.status === "scheduled" && a.date >= todayDate,
+      ).length,
+    );
 
     setCompleted(appointments.filter((a) => a.status === "completed").length);
 
@@ -89,7 +97,7 @@ export default function Dashboard() {
       />
 
       {username && <BookingLinkCard username={username} />}
-      
+
       <AvailabilityForm />
       <AvailabilityList />
 
@@ -102,7 +110,6 @@ export default function Dashboard() {
       >
         Logout
       </button>
-
     </div>
   );
 }
