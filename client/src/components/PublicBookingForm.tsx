@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/src/lib/supabase";
+import router from "next/router";
 
 type Props = {
   userId: string;
