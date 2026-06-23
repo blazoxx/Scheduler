@@ -10,7 +10,9 @@ function minutesToTime(minutes: number) {
     .toString()
     .padStart(2, "0");
 
-  const mins = (minutes % 60).toString().padStart(2, "0");
+  const mins = (minutes % 60)
+    .toString()
+    .padStart(2, "0");
 
   return `${hours}:${mins}`;
 }
@@ -20,30 +22,27 @@ export async function getAvailableSlots(
   date: string,
   duration = 30
 ): Promise<string[]> {
+
   const dayOfWeek = new Date(date).getDay();
 
-  // Get working hours
-  const { data: availability, error: availabilityError } = await supabase
+  // Working hours
+  const { data: availability } = await supabase
     .from("availability")
-    .select("*")
+    .select("start_time,end_time")
     .eq("user_id", userId)
     .eq("day_of_week", dayOfWeek)
     .single();
 
-  if (availabilityError || !availability) {
+  if (!availability) {
     return [];
   }
 
-  // Get appointments for that day
-  const { data: appointments, error: appointmentsError } = await supabase
+  // Existing appointments
+  const { data: appointments } = await supabase
     .from("appointments")
-    .select("*")
+    .select("start_time,end_time")
     .eq("user_id", userId)
     .eq("date", date);
-
-  if (appointmentsError) {
-    return [];
-  }
 
   const availableSlots: string[] = [];
 
@@ -64,7 +63,6 @@ export async function getAvailableSlots(
       const appointmentStart = timeToMinutes(appointment.start_time);
       const appointmentEnd = timeToMinutes(appointment.end_time);
 
-      // overlap check
       if (
         slotStart < appointmentEnd &&
         slotEnd > appointmentStart

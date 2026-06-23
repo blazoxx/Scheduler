@@ -27,8 +27,11 @@ export default function AvailabilityForm() {
       },
     );
 
-    console.log(data);
-    console.log(error);
+    if (error) {
+      console.error(error);
+    } else {
+      console.log("Availability saved");
+    }
 
     if (!error) {
       setDay(0);

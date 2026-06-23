@@ -3,11 +3,42 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabase";
 
+type Appointment = {
+  id: string;
+  client_name: string;
+  title: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+};
+
 export default function AppointmentList() {
-  const [appointments, setAppointments] = useState<any[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   useEffect(() => {
     fetchAppointments();
+
+    const channel = supabase
+      .channel("appointments-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "appointments",
+        },
+        (payload) => {
+          console.log("Realtime:", payload);
+          fetchAppointments();
+        },
+      )
+      .subscribe((status) => {
+        console.log("Channel status:", status);
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function fetchAppointments() {
@@ -18,7 +49,9 @@ export default function AppointmentList() {
     const { data, error } = await supabase
       .from("appointments")
       .select("*")
-      .eq("user_id", user?.id);
+      .eq("user_id", user?.id)
+      .order("date")
+      .order("start_time");
 
     if (error) {
       console.log(error);
@@ -29,20 +62,15 @@ export default function AppointmentList() {
   }
 
   async function deleteAppointment(id: string) {
-    const { error } = await supabase
-      .from("appointments")
-      .delete()
-      .eq("id", id);
+    const { error } = await supabase.from("appointments").delete().eq("id", id);
 
     if (error) {
       console.log(error);
       return;
     }
 
-    setAppointments(
-      appointments.filter(
-        (appointment) => appointment.id !== id
-      )
+    setAppointments((prev) =>
+      prev.filter((appointment) => appointment.id !== id),
     );
   }
 
@@ -70,9 +98,7 @@ export default function AppointmentList() {
           </div>
 
           <button
-            onClick={() =>
-              deleteAppointment(appointment.id)
-            }
+            onClick={() => deleteAppointment(appointment.id)}
             className="bg-red-500 text-white px-3 py-1 rounded"
           >
             Delete

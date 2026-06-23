@@ -25,6 +25,25 @@ export default function AvailabilityList() {
 
   useEffect(() => {
     fetchSlots();
+
+    const channel = supabase
+      .channel("availability-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "availability",
+        },
+        () => {
+          fetchSlots();
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function fetchSlots() {
