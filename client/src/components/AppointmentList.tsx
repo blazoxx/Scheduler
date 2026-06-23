@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabase";
+import StatusBadge from "./StatusBadge";
 
 type Appointment = {
   id: string;
@@ -10,6 +11,7 @@ type Appointment = {
   date: string;
   start_time: string;
   end_time: string;
+  status: "scheduled" | "completed" | "cancelled";
 };
 
 export default function AppointmentList() {
@@ -61,6 +63,32 @@ export default function AppointmentList() {
     setAppointments(data || []);
   }
 
+  async function completeAppointment(id: string) {
+    const { error } = await supabase
+      .from("appointments")
+      .update({
+        status: "completed",
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.log(error);
+    }
+  }
+
+  async function cancelAppointment(id: string) {
+    const { error } = await supabase
+      .from("appointments")
+      .update({
+        status: "cancelled",
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.log(error);
+    }
+  }
+
   async function deleteAppointment(id: string) {
     const { error } = await supabase.from("appointments").delete().eq("id", id);
 
@@ -88,7 +116,9 @@ export default function AppointmentList() {
               <strong>{appointment.client_name}</strong>
             </p>
 
-            <p>{appointment.title}</p>
+            <div className="mt-2">
+              <StatusBadge status={appointment.status} />
+            </div>
 
             <p>{appointment.date}</p>
 
@@ -97,12 +127,21 @@ export default function AppointmentList() {
             </p>
           </div>
 
-          <button
-            onClick={() => deleteAppointment(appointment.id)}
-            className="bg-red-500 text-white px-3 py-1 rounded"
-          >
-            Delete
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => completeAppointment(appointment.id)}
+              className="bg-green-500 text-white px-3 py-1 rounded"
+            >
+              Complete
+            </button>
+
+            <button
+              onClick={() => cancelAppointment(appointment.id)}
+              className="bg-red-500 text-white px-3 py-1 rounded"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       ))}
     </div>
