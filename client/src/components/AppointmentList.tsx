@@ -122,11 +122,19 @@ export default function AppointmentList() {
     );
   }
 
+  const upcomingAppointments = appointments.filter(
+    (appointment) => appointment.status === "scheduled",
+  );
+
+  const historyAppointments = appointments.filter(
+    (appointment) => appointment.status !== "scheduled",
+  );
+
   return (
     <div className="space-y-4 mt-8">
-      <h2 className="text-2xl font-bold">Appointments</h2>
+      <h2 className="text-2xl font-bold">Upcoming Appointments</h2>
 
-      {appointments.map((appointment) => (
+      {upcomingAppointments.map((appointment) => (
         <div
           key={appointment.id}
           className="border p-4 rounded flex justify-between"
@@ -175,6 +183,41 @@ export default function AppointmentList() {
           </div>
         </div>
       ))}
+
+      <h2 className="text-2xl font-bold mt-10">Appointment History</h2>
+
+      {historyAppointments.map((appointment) => (
+        <div
+          key={appointment.id}
+          className="border p-4 rounded flex justify-between opacity-80"
+        >
+          <div>
+            <p>
+              <strong>{appointment.client_name}</strong>
+            </p>
+
+            <p className="text-gray-400">{appointment.title}</p>
+
+            <div className="mt-2">
+              <StatusBadge status={appointment.status} />
+            </div>
+
+            <p>{appointment.date}</p>
+
+            <p>
+              {appointment.start_time} - {appointment.end_time}
+            </p>
+          </div>
+
+          <button
+            onClick={() => deleteAppointment(appointment.id)}
+            className="bg-gray-700 text-white px-3 py-1 rounded"
+          >
+            Delete
+          </button>
+        </div>
+      ))}
+
     </div>
   );
 }

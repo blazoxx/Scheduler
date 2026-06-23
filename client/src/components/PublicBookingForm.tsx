@@ -39,6 +39,18 @@ export default function PublicBookingForm({
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit() {
+    if (!clientName.trim() || !email.trim() || !title.trim()) {
+      alert("Please fill all fields.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      alert("Enter a valid email address.");
+      return;
+    }
+
     if (loading) return;
 
     setLoading(true);
@@ -79,6 +91,7 @@ export default function PublicBookingForm({
       <h2 className="text-2xl font-semibold">Book Appointment</h2>
 
       <input
+        required
         placeholder="Name"
         value={clientName}
         onChange={(e) => setClientName(e.target.value)}
@@ -86,6 +99,7 @@ export default function PublicBookingForm({
       />
 
       <input
+        required
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
@@ -93,6 +107,7 @@ export default function PublicBookingForm({
       />
 
       <input
+        required
         placeholder="Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
@@ -104,7 +119,9 @@ export default function PublicBookingForm({
       <div>Time: {selectedSlot}</div>
 
       <button
-        disabled={loading}
+        disabled={
+          loading || !clientName.trim() || !email.trim() || !title.trim()
+        }
         onClick={handleSubmit}
         className="bg-blue-600 px-4 py-2 rounded disabled:opacity-50"
       >
