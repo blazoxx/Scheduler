@@ -17,9 +17,13 @@ export default async function Page({
   }
 
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold">{profile.full_name}</h1>
-      <p className="text-gray-500">@{profile.username}</p>
+    <div className="p-8 space-y-6">
+      <div>
+        <h1 className="text-4xl font-bold">{profile.full_name}</h1>
+
+        <p className="text-gray-400">@{profile.username}</p>
+      </div>
+
       <BookingCalendar userId={profile.id} />
     </div>
   );

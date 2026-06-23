@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "@/src/lib/supabase";
 import { getAvailableSlots } from "@/src/lib/slotGenerator";
+import PublicBookingForm from "./PublicBookingForm";
 
 type Props = {
   userId: string;
@@ -11,6 +13,7 @@ export default function BookingCalendar({ userId }: Props) {
   const [selectedDate, setSelectedDate] = useState("");
   const [slots, setSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState("");
 
   useEffect(() => {
     if (!selectedDate) return;
@@ -19,10 +22,7 @@ export default function BookingCalendar({ userId }: Props) {
       setLoading(true);
 
       try {
-        const availableSlots = await getAvailableSlots(
-          userId,
-          selectedDate
-        );
+        const availableSlots = await getAvailableSlots(userId, selectedDate);
 
         setSlots(availableSlots);
       } catch (error) {
@@ -37,7 +37,6 @@ export default function BookingCalendar({ userId }: Props) {
 
   return (
     <div className="space-y-4">
-
       <input
         type="date"
         value={selectedDate}
@@ -45,9 +44,7 @@ export default function BookingCalendar({ userId }: Props) {
         className="border rounded px-3 py-2"
       />
 
-      {loading && (
-        <p>Loading slots...</p>
-      )}
+      {loading && <p>Loading slots...</p>}
 
       {!loading && slots.length === 0 && selectedDate && (
         <p>No slots available</p>
@@ -57,13 +54,22 @@ export default function BookingCalendar({ userId }: Props) {
         {slots.map((slot) => (
           <button
             key={slot}
-            className="border px-4 py-2 rounded hover:bg-gray-800"
+            onClick={() => setSelectedSlot(slot)}
+            className={`border px-4 py-2 rounded
+            ${selectedSlot === slot ? "bg-blue-600" : ""}`}
           >
             {slot}
           </button>
         ))}
       </div>
 
+      {selectedSlot && (
+        <PublicBookingForm
+          userId={userId}
+          selectedDate={selectedDate}
+          selectedSlot={selectedSlot}
+        />
+      )}
     </div>
   );
 }
