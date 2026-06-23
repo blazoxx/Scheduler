@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/src/lib/supabase";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 type Props = {
   userId: string;
@@ -32,6 +32,7 @@ export default function PublicBookingForm({
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
   const [title, setTitle] = useState("");
+  const router = useRouter();
 
   async function handleSubmit() {
     const endTime = addThirtyMinutes(selectedSlot);
