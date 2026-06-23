@@ -3,8 +3,25 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabase";
 
+type AvailabilitySlot = {
+  id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+};
+
+const DAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
 export default function AvailabilityList() {
-  const [slots, setSlots] = useState<any[]>([]);
+  const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
 
   useEffect(() => {
     fetchSlots();
@@ -18,7 +35,8 @@ export default function AvailabilityList() {
     const { data, error } = await supabase
       .from("availability")
       .select("*")
-      .eq("user_id", user?.id);
+      .eq("user_id", user?.id)
+      .order("day_of_week");
 
     if (error) {
       console.log(error);
@@ -36,7 +54,7 @@ export default function AvailabilityList() {
       return;
     }
 
-    setSlots(slots.filter((slot) => slot.id !== id));
+    setSlots((prev) => prev.filter((slot) => slot.id !== id));
   }
 
   return (
@@ -44,7 +62,8 @@ export default function AvailabilityList() {
       {slots.map((slot) => (
         <div key={slot.id} className="border p-4 rounded flex justify-between">
           <div>
-            <p>{slot.day}</p>
+            <p className="font-semibold">{DAYS[slot.day_of_week]}</p>
+
             <p>
               {slot.start_time} - {slot.end_time}
             </p>

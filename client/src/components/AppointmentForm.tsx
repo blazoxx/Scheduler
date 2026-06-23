@@ -105,7 +105,6 @@ export default function AppointmentForm() {
         value={date}
         onChange={(e) => setDate(e.target.value)}
         className="border p-2"
-        onKeyDown={(e) => e.preventDefault()}
       />
 
       <input
