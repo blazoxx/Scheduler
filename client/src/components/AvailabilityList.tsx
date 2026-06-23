@@ -35,11 +35,14 @@ export default function AvailabilityList() {
           schema: "public",
           table: "availability",
         },
-        () => {
+        (payload) => {
+          console.log("Availability Realtime:", payload);
           fetchSlots();
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("Availability channel:", status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
