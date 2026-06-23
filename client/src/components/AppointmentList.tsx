@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabase";
 import StatusBadge from "./StatusBadge";
+import AppointmentCard from "./AppointmentCard";
 
 type Appointment = {
   id: string;
@@ -135,89 +136,26 @@ export default function AppointmentList() {
       <h2 className="text-2xl font-bold">Upcoming Appointments</h2>
 
       {upcomingAppointments.map((appointment) => (
-        <div
+        <AppointmentCard
           key={appointment.id}
-          className="border p-4 rounded flex justify-between"
-        >
-          <div>
-            <p>
-              <strong>{appointment.client_name}</strong>
-            </p>
-
-            <p className="text-gray-400">{appointment.title}</p>
-
-            <div className="mt-2">
-              <StatusBadge status={appointment.status} />
-            </div>
-
-            <p>{appointment.date}</p>
-
-            <p>
-              {appointment.start_time} - {appointment.end_time}
-            </p>
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              disabled={appointment.status !== "scheduled"}
-              onClick={() => completeAppointment(appointment.id)}
-              className="bg-green-500 text-white px-3 py-1 rounded disabled:opacity-50"
-            >
-              Complete
-            </button>
-
-            <button
-              disabled={appointment.status !== "scheduled"}
-              onClick={() => cancelAppointment(appointment.id)}
-              className="bg-red-500 text-white px-3 py-1 rounded disabled:opacity-50"
-            >
-              Cancel
-            </button>
-
-            <button
-              onClick={() => deleteAppointment(appointment.id)}
-              className="bg-gray-700 text-white px-3 py-1 rounded"
-            >
-              Delete
-            </button>
-          </div>
-        </div>
+          appointment={appointment}
+          onComplete={completeAppointment}
+          onCancel={cancelAppointment}
+          onDelete={deleteAppointment}
+        />
       ))}
 
       <h2 className="text-2xl font-bold mt-10">Appointment History</h2>
 
       {historyAppointments.map((appointment) => (
-        <div
+        <AppointmentCard
           key={appointment.id}
-          className="border p-4 rounded flex justify-between opacity-80"
-        >
-          <div>
-            <p>
-              <strong>{appointment.client_name}</strong>
-            </p>
-
-            <p className="text-gray-400">{appointment.title}</p>
-
-            <div className="mt-2">
-              <StatusBadge status={appointment.status} />
-            </div>
-
-            <p>{appointment.date}</p>
-
-            <p>
-              {appointment.start_time} - {appointment.end_time}
-            </p>
-          </div>
-
-          <button
-            onClick={() => deleteAppointment(appointment.id)}
-            className="bg-gray-700 text-white px-3 py-1 rounded"
-          >
-            Delete
-          </button>
-        </div>
+          appointment={appointment}
+          onComplete={completeAppointment}
+          onCancel={cancelAppointment}
+          onDelete={deleteAppointment}
+        />
       ))}
-
     </div>
   );
 }
