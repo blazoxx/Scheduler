@@ -9,6 +9,7 @@ import AvailabilityList from "@/src/components/AvailabilityList";
 import AppointmentForm from "@/src/components/AppointmentForm";
 import AppointmentList from "@/src/components/AppointmentList";
 import DashboardCards from "@/src/components/DashboardCards";
+import BookingLinkCard from "@/src/components/dashboard/BookingLinkCard";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function Dashboard() {
   const [upcoming, setUpcoming] = useState(0);
   const [completed, setCompleted] = useState(0);
   const [cancelled, setCancelled] = useState(0);
+  const [username, setUsername] = useState("");
 
   useEffect(() => {
     async function checkSession() {
@@ -47,6 +49,16 @@ export default function Dashboard() {
 
     if (!user) return;
 
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", user.id)
+      .single();
+
+    if (profile) {
+      setUsername(profile.username);
+    }
+
     const todayDate = new Date().toISOString().split("T")[0];
 
     const { data } = await supabase
@@ -76,6 +88,8 @@ export default function Dashboard() {
         cancelled={cancelled}
       />
 
+      {username && <BookingLinkCard username={username} />}
+      
       <AvailabilityForm />
       <AvailabilityList />
 
@@ -88,6 +102,7 @@ export default function Dashboard() {
       >
         Logout
       </button>
+
     </div>
   );
 }
