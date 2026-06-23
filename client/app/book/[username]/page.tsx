@@ -17,8 +17,9 @@ export default async function Page({
 
   return (
     <div className="p-8">
-      <h1>{profile.full_name}</h1>
-      <p>@{profile.username}</p>
+    
+      <h1 className="text-3xl font-bold">{profile.full_name}</h1>
+      <p className="text-gray-500">@{profile.username}</p>
     </div>
   );
 }
