@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { supabase } from "@/src/lib/supabase";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 type Props = {
   userId: string;
+  username: string;
   selectedDate: string;
   selectedSlot: string;
 };
@@ -26,14 +27,34 @@ function addThirtyMinutes(time: string) {
 
 export default function PublicBookingForm({
   userId,
+  username,
   selectedDate,
   selectedSlot,
 }: Props) {
+  const router = useRouter();
+
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
   const [title, setTitle] = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function handleSubmit() {
+    if (!clientName.trim() || !email.trim() || !title.trim()) {
+      alert("Please fill all fields.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+      alert("Enter a valid email address.");
+      return;
+    }
+
+    if (loading) return;
+
+    setLoading(true);
+
     const endTime = addThirtyMinutes(selectedSlot);
 
     const { error } = await supabase.from("appointments").insert({
@@ -47,22 +68,64 @@ export default function PublicBookingForm({
       status: "scheduled",
     });
 
+    setLoading(false);
+
     if (error) {
+      if (error.code === "23505") {
+        alert("Slot already booked.");
+        return;
+      }
+
       console.error(error);
+      alert("Something went wrong.");
       return;
     }
 
     router.push(
-      `/success?date=${selectedDate}&start=${selectedSlot}&end=${endTime}&email=${email}`,
+      `/success?username=${username}&date=${selectedDate}&start=${selectedSlot}&end=${endTime}&email=${email}`,
     );
   }
 
   return (
     <div className="space-y-4 border rounded p-6 mt-6">
-      {/* inputs */}
+      <h2 className="text-2xl font-semibold">Book Appointment</h2>
 
-      <button onClick={handleSubmit} className="bg-blue-600 px-4 py-2 rounded">
-        Book Appointment
+      <input
+        required
+        placeholder="Name"
+        value={clientName}
+        onChange={(e) => setClientName(e.target.value)}
+        className="w-full border rounded p-2"
+      />
+
+      <input
+        required
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        className="w-full border rounded p-2"
+      />
+
+      <input
+        required
+        placeholder="Title"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="w-full border rounded p-2"
+      />
+
+      <div>Date: {selectedDate}</div>
+
+      <div>Time: {selectedSlot}</div>
+
+      <button
+        disabled={
+          loading || !clientName.trim() || !email.trim() || !title.trim()
+        }
+        onClick={handleSubmit}
+        className="bg-blue-600 px-4 py-2 rounded disabled:opacity-50"
+      >
+        {loading ? "Booking..." : "Book Appointment"}
       </button>
     </div>
   );

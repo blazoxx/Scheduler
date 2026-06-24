@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabase";
 import StatusBadge from "./StatusBadge";
+import AppointmentCard from "./AppointmentCard";
 
 type Appointment = {
   id: string;
@@ -60,7 +61,17 @@ export default function AppointmentList() {
       return;
     }
 
-    setAppointments(data || []);
+    const sorted = [...(data || [])].sort((a, b) => {
+      const priority: Record<string, number> = {
+        scheduled: 0,
+        completed: 1,
+        cancelled: 2,
+      };
+
+      return priority[a.status] - priority[b.status];
+    });
+
+    setAppointments(sorted);
   }
 
   async function completeAppointment(id: string) {
@@ -102,47 +113,48 @@ export default function AppointmentList() {
     );
   }
 
+  if (appointments.length === 0) {
+    return (
+      <div className="mt-8">
+        <h2 className="text-2xl font-bold">Appointments</h2>
+
+        <p className="mt-4 text-gray-500">No appointments yet.</p>
+      </div>
+    );
+  }
+
+  const upcomingAppointments = appointments.filter(
+    (appointment) => appointment.status === "scheduled",
+  );
+
+  const historyAppointments = appointments.filter(
+    (appointment) => appointment.status !== "scheduled",
+  );
+
   return (
     <div className="space-y-4 mt-8">
-      <h2 className="text-2xl font-bold">Appointments</h2>
+      <h2 className="text-2xl font-bold">Upcoming Appointments</h2>
 
-      {appointments.map((appointment) => (
-        <div
+      {upcomingAppointments.map((appointment) => (
+        <AppointmentCard
           key={appointment.id}
-          className="border p-4 rounded flex justify-between"
-        >
-          <div>
-            <p>
-              <strong>{appointment.client_name}</strong>
-            </p>
+          appointment={appointment}
+          onComplete={completeAppointment}
+          onCancel={cancelAppointment}
+          onDelete={deleteAppointment}
+        />
+      ))}
 
-            <div className="mt-2">
-              <StatusBadge status={appointment.status} />
-            </div>
+      <h2 className="text-2xl font-bold mt-10">Appointment History</h2>
 
-            <p>{appointment.date}</p>
-
-            <p>
-              {appointment.start_time} - {appointment.end_time}
-            </p>
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={() => completeAppointment(appointment.id)}
-              className="bg-green-500 text-white px-3 py-1 rounded"
-            >
-              Complete
-            </button>
-
-            <button
-              onClick={() => cancelAppointment(appointment.id)}
-              className="bg-red-500 text-white px-3 py-1 rounded"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+      {historyAppointments.map((appointment) => (
+        <AppointmentCard
+          key={appointment.id}
+          appointment={appointment}
+          onComplete={completeAppointment}
+          onCancel={cancelAppointment}
+          onDelete={deleteAppointment}
+        />
       ))}
     </div>
   );

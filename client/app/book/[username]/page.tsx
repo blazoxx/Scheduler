@@ -24,7 +24,7 @@ export default async function Page({
         <p className="text-gray-400">@{profile.username}</p>
       </div>
 
-      <BookingCalendar userId={profile.id} />
+      <BookingCalendar userId={profile.id} username={profile.username} />
     </div>
   );
 }

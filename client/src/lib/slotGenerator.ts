@@ -40,9 +40,10 @@ export async function getAvailableSlots(
   // Existing appointments
   const { data: appointments } = await supabase
     .from("appointments")
-    .select("start_time,end_time")
+    .select("start_time,end_time,status")
     .eq("user_id", userId)
-    .eq("date", date);
+    .eq("date", date)
+    .in("status", ["scheduled", "completed"]);
 
   const availableSlots: string[] = [];
 
