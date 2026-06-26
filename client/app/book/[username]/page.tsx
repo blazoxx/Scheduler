@@ -12,8 +12,9 @@ export default async function Page({
 
   try {
     profile = await getUserByUsername(username);
-  } catch {
-    notFound();
+  } catch (err) {
+    console.error("PAGE ERROR:", err);
+    throw err;
   }
 
   return (
