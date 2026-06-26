@@ -25,17 +25,24 @@ export async function getAvailableSlots(
 
   const dayOfWeek = new Date(date).getDay();
 
-  // Working hours
-  const { data: availability } = await supabase
-    .from("availability")
-    .select("start_time,end_time")
-    .eq("user_id", userId)
-    .eq("day_of_week", dayOfWeek)
-    .single();
+  console.log("DAY OF WEEK:", dayOfWeek);
+  console.log("USER:", userId);
 
-  if (!availability) {
-    return [];
-  }
+  // Working hours
+  const { data: availability, error } = await supabase
+    .from("availability")
+    .select("*")
+    .eq("user_id", userId);
+
+  console.log("AVAILABILITY RAW:", availability);
+  console.log("AVAILABILITY ERROR:", error);
+
+  console.log("AVAILABILITY:", availability);
+
+  // if (!availability) {
+  //   return [];
+  // }
+  return [];
 
   // Existing appointments
   const { data: appointments } = await supabase
@@ -45,10 +52,15 @@ export async function getAvailableSlots(
     .eq("date", date)
     .in("status", ["scheduled", "completed"]);
 
+  console.log("APPOINTMENTS:", appointments);
+
   const availableSlots: string[] = [];
 
   const workStart = timeToMinutes(availability.start_time);
   const workEnd = timeToMinutes(availability.end_time);
+
+  console.log("WORK START:", workStart);
+  console.log("WORK END:", workEnd);
 
   for (
     let current = workStart;
@@ -76,6 +88,13 @@ export async function getAvailableSlots(
     if (!isOccupied) {
       availableSlots.push(minutesToTime(slotStart));
     }
+
+    console.log(
+      "CHECKING SLOT:",
+      minutesToTime(slotStart),
+      "-",
+      minutesToTime(slotEnd)
+    );
   }
 
   return availableSlots;

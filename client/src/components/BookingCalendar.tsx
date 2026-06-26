@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/src/lib/supabase";
 import { getAvailableSlots } from "@/src/lib/slotGenerator";
 import PublicBookingForm from "./PublicBookingForm";
+import AIScheduler from "./AIScheduler";
 
 type Props = {
   userId: string;
@@ -41,6 +41,7 @@ export default function BookingCalendar({
 
   return (
     <div className="space-y-4">
+      <AIScheduler userId={userId} />
       <input
         type="date"
         value={selectedDate}
