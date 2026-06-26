@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "@/src/lib/supabase";
 import { useRouter } from "next/navigation";
+import { bookAppointment } from "@/src/lib/bookAppointment";
 
 type Props = {
   userId: string;
@@ -10,20 +10,6 @@ type Props = {
   selectedDate: string;
   selectedSlot: string;
 };
-
-function addThirtyMinutes(time: string) {
-  const [hours, minutes] = time.split(":").map(Number);
-
-  const totalMinutes = hours * 60 + minutes + 30;
-
-  const h = Math.floor(totalMinutes / 60)
-    .toString()
-    .padStart(2, "0");
-
-  const m = (totalMinutes % 60).toString().padStart(2, "0");
-
-  return `${h}:${m}`;
-}
 
 export default function PublicBookingForm({
   userId,
@@ -55,17 +41,14 @@ export default function PublicBookingForm({
 
     setLoading(true);
 
-    const endTime = addThirtyMinutes(selectedSlot);
-
-    const { error } = await supabase.from("appointments").insert({
-      user_id: userId,
-      client_name: clientName,
+    const { error, endTime } = await bookAppointment({
+      userId,
+      clientName,
       email,
       title,
       date: selectedDate,
-      start_time: selectedSlot,
-      end_time: endTime,
-      status: "scheduled",
+      startTime: selectedSlot,
+      duration: 30,
     });
 
     setLoading(false);

@@ -73,7 +73,7 @@ export async function getAvailableSlots(
   for (
     let current = workStart;
     current + duration <= workEnd;
-    current += duration
+    current += 30
   ) {
     const slotStart = current;
     const slotEnd = current + duration;
