@@ -31,7 +31,7 @@ export function findBestSlot(
   if (data.preferred_period === "afternoon") {
     filteredSlots = slots.filter((slot) => {
       const hour = Number(slot.split(":")[0]);
-      return hour >= 12 && hour < 17;
+      return hour >= 13 && hour < 17;
     });
   }
 
