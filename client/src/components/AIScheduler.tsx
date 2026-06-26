@@ -1,19 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import AIResultCard from "./AIResultCard";
 
 type Props = {
   userId: string;
 };
 
 type ScheduleResult = {
-  suggestion?: {
-    title?: string;
-    date?: string;
-    start_time?: string;
-    end_time?: string;
-    duration?: number;
-  };
+  suggestion: {
+    title: string;
+    date: string;
+    start_time: string;
+    end_time: string;
+    duration: number;
+  } | null;
 };
 
 export default function AIScheduler({ userId }: Props) {
@@ -47,11 +48,7 @@ export default function AIScheduler({ userId }: Props) {
 
       setResult(data);
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Something went wrong"
-      );
+      setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -59,9 +56,7 @@ export default function AIScheduler({ userId }: Props) {
 
   return (
     <div className="border rounded-lg p-4 space-y-4">
-      <h2 className="text-xl font-semibold">
-        AI Scheduler
-      </h2>
+      <h2 className="text-xl font-semibold">AI Scheduler</h2>
 
       <textarea
         value={message}
@@ -75,46 +70,18 @@ export default function AIScheduler({ userId }: Props) {
         disabled={loading || !message}
         className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
       >
-        {loading
-          ? "Analyzing..."
-          : "Schedule with AI"}
+        {loading ? "Analyzing..." : "Schedule with AI"}
       </button>
 
-      {error && (
-        <p className="text-red-500">
-          {error}
-        </p>
-      )}
+      {error && <p className="text-red-500">{error}</p>}
 
-      {result && (
-        <div className="border rounded p-4 bg-gray-50">
-          <h3 className="font-bold mb-2">
-            AI Suggestion
-          </h3>
-
-          <p>
-            <strong>Title:</strong>{" "}
-            {result.suggestion?.title}
-          </p>
-
-          <p>
-            <strong>Date:</strong>{" "}
-            {result.suggestion?.date}
-          </p>
-
-          <p>
-            <strong>Time:</strong>{" "}
-            {result.suggestion?.start_time}
-            {" - "}
-            {result.suggestion?.end_time}
-          </p>
-
-          <p>
-            <strong>Duration:</strong>{" "}
-            {result.suggestion?.duration} mins
-          </p>
-        </div>
-      )}
+      <AIResultCard
+        loading={loading}
+        suggestion={result?.suggestion ?? null}
+        onConfirm={() => {
+          console.log("Confirm booking");
+        }}
+      />
     </div>
   );
 }
