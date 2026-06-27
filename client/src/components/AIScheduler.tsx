@@ -2,26 +2,44 @@
 
 import { useState } from "react";
 import AIResultCard from "./AIResultCard";
+import { useRouter } from "next/navigation";
 
 type Props = {
   userId: string;
+  username: string;
+};
+
+type Suggestion = {
+  title: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+  duration: number;
+  score: number;
+};
+
+type SlotResult = {
+  exactMatch: boolean;
+  message?: string;
+  suggestions: Suggestion[];
 };
 
 type ScheduleResult = {
-  suggestion: {
+  ai: {
     title: string;
-    date: string;
-    start_time: string;
-    end_time: string;
     duration: number;
-  } | null;
+    date: string;
+  };
+
+  slotResult: SlotResult;
 };
 
-export default function AIScheduler({ userId }: Props) {
+export default function AIScheduler({ userId, username }: Props) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScheduleResult | null>(null);
   const [error, setError] = useState("");
+  const router = useRouter();
 
   async function handleSchedule() {
     try {
@@ -55,7 +73,7 @@ export default function AIScheduler({ userId }: Props) {
       setLoading(false);
     }
   }
-console.log("RESULT STATE:", result);
+  console.log("RESULT STATE:", result);
   return (
     <div className="border rounded-lg p-4 space-y-4">
       <h2 className="text-xl font-semibold">AI Scheduler</h2>
@@ -64,7 +82,7 @@ console.log("RESULT STATE:", result);
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Need a 30 minute meeting next Friday afternoon regarding project discussion"
-        className="w-full border rounded p-3 min-h-[120px]"
+        className="w-full border rounded p-3 min-h-30"
       />
 
       <button
@@ -79,13 +97,52 @@ console.log("RESULT STATE:", result);
 
       <AIResultCard
         loading={loading}
-        suggestion={result?.suggestion ?? null}
-        onConfirm={(clientName, email) => {
-          console.log({
-            clientName,
-            email,
-            suggestion: result?.suggestion,
-          });
+        slotResult={result?.slotResult ?? null}
+        onConfirm={async ({
+          clientName,
+          email,
+          suggestion,
+        }: {
+          clientName: string;
+          email: string;
+          suggestion?: Suggestion | null;
+        }) => {
+          if (!suggestion) return;
+
+          try {
+            const response = await fetch("/api/book-appointment", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                userId,
+                clientName,
+                email,
+
+                title: suggestion.title,
+                date: suggestion.date,
+                start_time: suggestion.start_time,
+                end_time: suggestion.end_time,
+                duration: suggestion.duration,
+              }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+              throw new Error(data.error || "Booking failed");
+            }
+
+            router.push(
+              `/success?username=${username}&date=${suggestion.date}&start=${suggestion.start_time}&end=${suggestion.end_time}&email=${encodeURIComponent(email)}`,
+            );
+
+            setResult(null);
+            setMessage("");
+          } catch (err) {
+            alert(err instanceof Error ? err.message : "Booking failed");
+          }
         }}
       />
     </div>

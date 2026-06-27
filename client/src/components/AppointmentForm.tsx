@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { supabase } from "@/src/lib/supabase";
-import { getAvailableSlots } from "@/src/lib/slotGenerator";
 
 export default function AppointmentForm() {
   const [clientName, setClientName] = useState("");
@@ -55,8 +54,23 @@ export default function AppointmentForm() {
     setEndTime("");
 
     if (user && date) {
-      const slots = await getAvailableSlots(user.id, date, 30);
-      setAvailableSlots(slots);
+      const response = await fetch("/api/available-slots", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          date,
+          duration: 30,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setAvailableSlots(data.slots);
+      }
     }
   }
 
@@ -104,13 +118,23 @@ export default function AppointmentForm() {
           } = await supabase.auth.getUser();
 
           if (user && selectedDate) {
-            const slots = await getAvailableSlots(
-              user.id,
-              selectedDate,
-              30
-            );
+            const response = await fetch("/api/available-slots", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                userId: user.id,
+                date: selectedDate,
+                duration: 30,
+              }),
+            });
 
-            setAvailableSlots(slots);
+            const data = await response.json();
+
+            if (response.ok) {
+              setAvailableSlots(data.slots);
+            }
           }
         }}
         className="border p-2"
@@ -131,9 +155,7 @@ export default function AppointmentForm() {
             .toString()
             .padStart(2, "0");
 
-          const endM = (totalMinutes % 60)
-            .toString()
-            .padStart(2, "0");
+          const endM = (totalMinutes % 60).toString().padStart(2, "0");
 
           setEndTime(`${endH}:${endM}`);
         }}
@@ -149,16 +171,10 @@ export default function AppointmentForm() {
       </select>
 
       {date && availableSlots.length === 0 && (
-        <p className="text-red-500">
-          No slots available for this date.
-        </p>
+        <p className="text-red-500">No slots available for this date.</p>
       )}
 
-      {endTime && (
-        <p className="text-gray-600">
-          Ends at: {endTime}
-        </p>
-      )}
+      {endTime && <p className="text-gray-600">Ends at: {endTime}</p>}
 
       <button
         onClick={addAppointment}

@@ -1,4 +1,4 @@
-import { supabase } from "./supabase";
+import { supabaseAdmin } from "./supabaseAdmin";
 
 function timeToMinutes(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
@@ -17,7 +17,7 @@ function minutesToTime(minutes: number) {
   return `${hours}:${mins}`;
 }
 
-export async function getAvailableSlots(
+export async function getAvailableSlot(
   userId: string,
   date: string,
   duration = 30
@@ -27,7 +27,7 @@ export async function getAvailableSlots(
   console.log("DATE:", date);
   console.log("DAY:", dayOfWeek);
 
-  const { data: allAvailability } = await supabase
+  const { data: allAvailability } = await supabaseAdmin
     .from("availability")
     .select("*")
     .eq("user_id", userId);
@@ -38,7 +38,7 @@ export async function getAvailableSlots(
   console.log("USER:", userId);
 
   // Working hours
-  const { data: availability, error } = await supabase
+  const { data: availability, error } = await supabaseAdmin
     .from("availability")
     .select("*")
     .eq("user_id", userId)
@@ -58,7 +58,7 @@ export async function getAvailableSlots(
 
   // Existing appointments
   const { data: appointments, error: appointmentsError } =
-    await supabase
+    await supabaseAdmin
       .from("appointments")
       .select("start_time,end_time,status")
       .eq("user_id", userId)
