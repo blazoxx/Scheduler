@@ -110,6 +110,16 @@ export default function AIScheduler({ userId, username }: Props) {
           if (!suggestion) return;
 
           try {
+            console.log({
+              userId,
+              clientName,
+              email,
+              title: suggestion.title,
+              date: suggestion.date,
+              start_time: suggestion.start_time,
+              end_time: suggestion.end_time,
+              duration: suggestion.duration,
+            });
             const response = await fetch("/api/book-appointment", {
               method: "POST",
               headers: {
