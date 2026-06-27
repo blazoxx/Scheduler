@@ -24,6 +24,16 @@ export async function getAvailableSlots(
 ): Promise<string[]> {
   const dayOfWeek = new Date(date).getDay();
 
+  console.log("DATE:", date);
+  console.log("DAY:", dayOfWeek);
+
+  const { data: allAvailability } = await supabase
+    .from("availability")
+    .select("*")
+    .eq("user_id", userId);
+
+  console.log("ALL AVAILABILITY:", allAvailability);
+
   console.log("DAY OF WEEK:", dayOfWeek);
   console.log("USER:", userId);
 

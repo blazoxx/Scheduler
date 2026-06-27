@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 type Suggestion = {
   title: string;
   date: string;
@@ -11,7 +13,7 @@ type Suggestion = {
 type Props = {
   suggestion: Suggestion | null;
   loading?: boolean;
-  onConfirm?: () => void;
+  onConfirm?: (clientName: string, email: string) => void;
 };
 
 export default function AIResultCard({
@@ -19,12 +21,13 @@ export default function AIResultCard({
   loading = false,
   onConfirm,
 }: Props) {
+  const [clientName, setClientName] = useState("");
+  const [email, setEmail] = useState("");
+
   if (loading) {
     return (
       <div className="rounded-xl border p-6 bg-white shadow-sm">
-        <h3 className="text-xl font-semibold mb-4">
-          AI Scheduler
-        </h3>
+        <h3 className="text-xl font-semibold mb-4">AI Scheduler</h3>
 
         <div className="space-y-2 text-gray-500">
           <p>🤖 Analyzing request...</p>
@@ -43,9 +46,7 @@ export default function AIResultCard({
     );
   }
 
-  const formattedDate = new Date(
-    suggestion.date
-  ).toLocaleDateString("en-IN", {
+  const formattedDate = new Date(suggestion.date).toLocaleDateString("en-IN", {
     day: "numeric",
     month: "short",
     year: "numeric",
@@ -54,66 +55,63 @@ export default function AIResultCard({
   return (
     <div className="rounded-xl border bg-white shadow-sm p-6 space-y-5">
       <div>
-        <h2 className="text-2xl font-bold">
-          AI Suggestion
-        </h2>
+        <h2 className="text-2xl font-bold">AI Suggestion</h2>
 
-        <p className="text-gray-500">
-          Review before confirming.
-        </p>
+        <p className="text-gray-500">Review before confirming.</p>
       </div>
 
       <div className="space-y-4">
-
         <div>
-          <p className="text-sm text-gray-500">
-            Meeting
-          </p>
+          <p className="text-sm text-gray-500">Meeting</p>
 
-          <p className="text-xl font-semibold">
-            {suggestion.title}
-          </p>
+          <p className="text-xl font-semibold">{suggestion.title}</p>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-
           <div className="rounded-lg border p-4">
-            <p className="text-sm text-gray-500">
-              Date
-            </p>
+            <p className="text-sm text-gray-500">Date</p>
 
-            <p className="font-medium">
-              {formattedDate}
-            </p>
+            <p className="font-medium">{formattedDate}</p>
           </div>
 
           <div className="rounded-lg border p-4">
-            <p className="text-sm text-gray-500">
-              Time
-            </p>
+            <p className="text-sm text-gray-500">Time</p>
 
             <p className="font-medium">
               {suggestion.start_time} - {suggestion.end_time}
             </p>
           </div>
-
         </div>
 
         <div className="rounded-lg border p-4">
-          <p className="text-sm text-gray-500">
-            Duration
-          </p>
+          <p className="text-sm text-gray-500">Duration</p>
 
-          <p className="font-medium">
-            {suggestion.duration} minutes
-          </p>
+          <p className="font-medium">{suggestion.duration} minutes</p>
         </div>
+      </div>
 
+      <div className="space-y-3">
+        <input
+          type="text"
+          placeholder="Your Name"
+          value={clientName}
+          onChange={(e) => setClientName(e.target.value)}
+          className="w-full border rounded-lg p-3"
+        />
+
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full border rounded-lg p-3"
+        />
       </div>
 
       <button
-        onClick={onConfirm}
-        className="w-full rounded-lg bg-blue-600 py-3 text-white font-medium hover:bg-blue-700 transition"
+        disabled={!clientName.trim() || !email.trim()}
+        onClick={() => onConfirm?.(clientName.trim(), email.trim())}
+        className="w-full rounded-lg bg-blue-600 py-3 text-white font-medium disabled:opacity-50 hover:bg-blue-700 transition"
       >
         Confirm Booking
       </button>

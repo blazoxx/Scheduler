@@ -41,19 +41,21 @@ export default function AIScheduler({ userId }: Props) {
       });
 
       const data = await response.json();
+      console.log("API RESPONSE:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to schedule");
       }
 
       setResult(data);
+      console.log("SETTING RESULT");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
   }
-
+console.log("RESULT STATE:", result);
   return (
     <div className="border rounded-lg p-4 space-y-4">
       <h2 className="text-xl font-semibold">AI Scheduler</h2>
@@ -78,8 +80,12 @@ export default function AIScheduler({ userId }: Props) {
       <AIResultCard
         loading={loading}
         suggestion={result?.suggestion ?? null}
-        onConfirm={() => {
-          console.log("Confirm booking");
+        onConfirm={(clientName, email) => {
+          console.log({
+            clientName,
+            email,
+            suggestion: result?.suggestion,
+          });
         }}
       />
     </div>

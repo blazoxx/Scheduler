@@ -47,6 +47,8 @@ ${message}
           .replace(/```/g, "")
           .trim()
       );
+      console.log("PARSED DATE:", parsed.date);
+      console.log("JS DAY:", new Date(parsed.date).getDay());
 
       console.log("JSON PARSED SUCCESSFULLY");
     } catch (error) {
@@ -94,7 +96,10 @@ ${message}
 
     console.log("AI OUTPUT:", parsed);
     console.log("SUGGESTION:", suggestion);
-
+    console.log("RETURNING:", {
+      ai: parsed,
+      suggestion,
+    });
     return NextResponse.json({
       ai: parsed,
       suggestion,
