@@ -59,6 +59,8 @@ export default function BookingCalendar({
         username={username}
         fullName={fullName}
         email={email}
+        appointmentToReschedule={null}
+        clearReschedule={() => {}}
       />
       
       <input

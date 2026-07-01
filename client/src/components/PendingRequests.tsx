@@ -73,28 +73,6 @@ export default function PendingRequests() {
     fetchPending();
   }
 
-  async function fetchPending() {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from("appointments")
-      .select("*")
-      .eq("user_id", user.id)
-      .eq("status", "pending")
-      .order("date");
-
-    if (error) {
-      console.error(error);
-      return;
-    }
-
-    setAppointments(data ?? []);
-  }
-
   return (
     <div className="mt-8 rounded-xl border p-6">
       <h2 className="mb-6 text-2xl font-bold">Pending Requests</h2>
