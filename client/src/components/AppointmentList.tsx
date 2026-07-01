@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabase";
 import AppointmentCard from "./AppointmentCard";
 import type { Appointment } from "@/src/types/appointment";
@@ -8,7 +8,7 @@ import type { Appointment } from "@/src/types/appointment";
 export default function AppointmentList() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -46,7 +46,7 @@ export default function AppointmentList() {
     });
 
     setAppointments(sorted);
-  };
+  }, []);
 
   async function completeAppointment(id: string) {
     const { error } = await supabase
@@ -91,7 +91,9 @@ export default function AppointmentList() {
   }
 
   useEffect(() => {
-    fetchAppointments();
+    const timer = window.setTimeout(() => {
+      void fetchAppointments();
+    }, 0);
 
     const channel = supabase
       .channel("appointments-channel")
@@ -104,7 +106,9 @@ export default function AppointmentList() {
         },
         (payload) => {
           console.log("Realtime:", payload);
-          fetchAppointments();
+          window.setTimeout(() => {
+            void fetchAppointments();
+          }, 0);
         },
       )
       .subscribe((status) => {
@@ -112,9 +116,10 @@ export default function AppointmentList() {
       });
 
     return () => {
+      window.clearTimeout(timer);
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [fetchAppointments]);
 
   const today = new Date().toISOString().split("T")[0];
 

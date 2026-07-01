@@ -1,16 +1,7 @@
 "use client";
 
+import type { Appointment } from "@/src/types/appointment";
 import StatusBadge from "./StatusBadge";
-
-type Appointment = {
-  id: string;
-  client_name: string;
-  title: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: "scheduled" | "completed" | "cancelled";
-};
 
 type Props = {
   appointment: Appointment;
