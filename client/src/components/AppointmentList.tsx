@@ -75,10 +75,7 @@ export default function AppointmentList() {
   }
 
   async function deleteAppointment(id: string) {
-    const { error } = await supabase
-      .from("appointments")
-      .delete()
-      .eq("id", id);
+    const { error } = await supabase.from("appointments").delete().eq("id", id);
 
     if (error) {
       console.error(error);
@@ -123,14 +120,9 @@ export default function AppointmentList() {
 
   const today = new Date().toISOString().split("T")[0];
 
-  const pendingAppointments = appointments.filter(
-    (appointment) => appointment.status === "pending",
-  );
-
   const upcomingAppointments = appointments.filter(
     (appointment) =>
-      appointment.status === "scheduled" &&
-      appointment.date >= today,
+      appointment.status === "scheduled" && appointment.date >= today,
   );
 
   const historyAppointments = appointments.filter(
@@ -138,8 +130,7 @@ export default function AppointmentList() {
       appointment.status === "completed" ||
       appointment.status === "cancelled" ||
       appointment.status === "rejected" ||
-      (appointment.status === "scheduled" &&
-        appointment.date < today),
+      (appointment.status === "scheduled" && appointment.date < today),
   );
 
   if (appointments.length === 0) {
@@ -147,41 +138,17 @@ export default function AppointmentList() {
       <div className="mt-8">
         <h2 className="text-2xl font-bold">Appointments</h2>
 
-        <p className="mt-4 text-gray-500">
-          No appointments yet.
-        </p>
+        <p className="mt-4 text-gray-500">No appointments yet.</p>
       </div>
     );
   }
 
   return (
     <div className="mt-8 space-y-4">
-      <h2 className="text-2xl font-bold">Pending Requests</h2>
-
-      {pendingAppointments.length === 0 ? (
-        <p className="mt-4 text-gray-500">
-          No pending requests.
-        </p>
-      ) : (
-        pendingAppointments.map((appointment) => (
-          <AppointmentCard
-            key={appointment.id}
-            appointment={appointment as Appointment}
-            onComplete={completeAppointment}
-            onCancel={cancelAppointment}
-            onDelete={deleteAppointment}
-          />
-        ))
-      )}
-
-      <h2 className="mt-10 text-2xl font-bold">
-        Upcoming Appointments
-      </h2>
+      <h2 className="mt-10 text-2xl font-bold">Upcoming Appointments</h2>
 
       {upcomingAppointments.length === 0 ? (
-        <p className="mt-4 text-gray-500">
-          No upcoming appointments.
-        </p>
+        <p className="mt-4 text-gray-500">No upcoming appointments.</p>
       ) : (
         upcomingAppointments.map((appointment) => (
           <AppointmentCard
@@ -194,14 +161,10 @@ export default function AppointmentList() {
         ))
       )}
 
-      <h2 className="mt-10 text-2xl font-bold">
-        Appointment History
-      </h2>
+      <h2 className="mt-10 text-2xl font-bold">Appointment History</h2>
 
       {historyAppointments.length === 0 ? (
-        <p className="mt-4 text-gray-500">
-          No appointment history.
-        </p>
+        <p className="mt-4 text-gray-500">No appointment history.</p>
       ) : (
         historyAppointments.map((appointment) => (
           <AppointmentCard

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAvailableSlots } from "@/src/lib/slotGenerator";
+import { getAvailableSlot } from "@/src/lib/slotGenerator";
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const slots = await getAvailableSlots(
+    const slots = await getAvailableSlot(
       userId,
       date,
       duration ?? 30
