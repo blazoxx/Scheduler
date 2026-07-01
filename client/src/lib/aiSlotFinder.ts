@@ -44,6 +44,16 @@ function toMinutes(time: string) {
   return h * 60 + m;
 }
 
+function scoreByDistance(
+  actual: number,
+  preferred: number
+) {
+  const distance = Math.abs(actual - preferred);
+
+  // Lose 1 point every 10 minutes away
+  return Math.max(0, 25 - Math.floor(distance / 10));
+}
+
 function calculateScore(
   slot: string,
   data: ScheduleRequest
@@ -51,6 +61,7 @@ function calculateScore(
   let score = 0;
 
   const minutes = toMinutes(slot);
+
 
   //--------------------------------------------------
   // Preferred period
@@ -99,7 +110,10 @@ function calculateScore(
     );
 
     if (minutes >= earliest) {
-      score += 25;
+      score += scoreByDistance(
+        minutes,
+        earliest
+      );
     }
   }
 
@@ -116,7 +130,12 @@ function calculateScore(
     if (
       minutes + data.duration <= latest
     ) {
-      score += 25;
+
+      score += scoreByDistance(
+        minutes + data.duration,
+        latest
+      );
+
     }
   }
 
@@ -124,11 +143,16 @@ function calculateScore(
   // Earlier slots get slightly higher score
   //--------------------------------------------------
 
-  score +=
-    Math.max(
-      0,
-      10 - Math.floor(minutes / 60)
-    );
+  if (
+    !data.earliest_time &&
+    !data.latest_time
+  ) {
+    score +=
+      Math.max(
+        0,
+        10 - Math.floor(minutes / 120)
+      );
+  }
 
   return score;
 }
@@ -220,7 +244,7 @@ export function findBestSlot(
         duration: data.duration,
         score: calculateScore(slot, data),
       }))
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => Number(b.score) - Number(a.score))
       .slice(0, 3);
 
     return {
@@ -242,7 +266,7 @@ export function findBestSlot(
       duration: data.duration,
       score: calculateScore(slot, data),
     }))
-    .sort((a, b) => b.score - a.score)
+    .sort((a, b) => Number(b.score) - Number(a.score))
     .slice(0, 3);
 
   return {
