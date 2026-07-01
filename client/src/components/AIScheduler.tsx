@@ -1,14 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AIResultCard from "./AIResultCard";
 import { useRouter } from "next/navigation";
 
-type Props = {
-  userId: string;
+type Host = {
+  id: string;
   username: string;
+  full_name: string;
+};
+
+type Props = {
   fullName: string;
   email: string;
+
+  userId?: string;
+  username?: string;
+
+  hosts?: Host[];
 };
 
 type Suggestion = {
@@ -41,12 +50,21 @@ export default function AIScheduler({
   username,
   fullName,
   email,
+  hosts,
 }: Props) {
   const [message, setMessage] = useState("");
+  const [selectedHost, setSelectedHost] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScheduleResult | null>(null);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  useEffect(() => {
+    if (hosts && hosts.length > 0 && !selectedHost) {
+      setSelectedHost(hosts[0].id);
+    }
+  }, [hosts, selectedHost]);
+  const selectedHostData = hosts?.find((host) => host.id === selectedHost);
 
   async function handleSchedule() {
     try {
@@ -60,7 +78,7 @@ export default function AIScheduler({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId,
+          userId: hosts ? selectedHost : userId,
           message,
         }),
       });
@@ -80,10 +98,30 @@ export default function AIScheduler({
       setLoading(false);
     }
   }
+
   console.log("RESULT STATE:", result);
+
   return (
     <div className="border rounded-lg p-4 space-y-4">
       <h2 className="text-xl font-semibold">AI Scheduler</h2>
+
+      {hosts && (
+        <div className="space-y-2">
+          <label className="font-medium">Select Host</label>
+
+          <select
+            value={selectedHost}
+            onChange={(e) => setSelectedHost(e.target.value)}
+            className="w-full rounded border p-3"
+          >
+            {hosts.map((host) => (
+              <option key={host.id} value={host.id}>
+                {host.full_name} (@{host.username})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       <textarea
         value={message}
@@ -135,7 +173,8 @@ export default function AIScheduler({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                userId,
+                userId: hosts ? selectedHost : userId,
+
                 clientName,
                 email,
 
@@ -154,7 +193,9 @@ export default function AIScheduler({
             }
 
             router.push(
-              `/success?username=${username}&date=${suggestion.date}&start=${suggestion.start_time}&end=${suggestion.end_time}&email=${encodeURIComponent(email)}`,
+              `/success?username=${
+                hosts ? selectedHostData?.username : username
+              }&date=${suggestion.date}&start=${suggestion.start_time}&end=${suggestion.end_time}&email=${encodeURIComponent(email)}`,
             );
 
             setResult(null);
