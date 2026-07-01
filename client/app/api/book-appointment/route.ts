@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createElement } from "react";
 import { supabaseAdmin } from "@/src/lib/supabaseAdmin";
+import BookingRequested from "@/src/lib/email/templates/BookingRequested";
+import { sendEmail } from "@/src/lib/email/sendEmail";
 
 function toMinutes(time: string) {
   const [h, m] = time.split(":").map(Number);
@@ -140,61 +143,101 @@ export async function POST(req: NextRequest) {
 
     console.log("NEW APPOINTMENT:", newAppointment.id);
 
-    if (
-      oldAppointmentId &&
-      oldAppointmentId !== newAppointment.id
-    ) {
-      console.log(
-        "CANCELLING OLD APPOINTMENT:",
-        oldAppointmentId
+    const { data: host, error: hostError } =
+      await supabaseAdmin
+        .from("profiles")
+        .select("email, full_name")
+        .eq("id", userId)
+        .single();
+
+    if (hostError || !host) {
+      console.error("HOST FETCH ERROR:", hostError);
+
+      return NextResponse.json(
+        {
+          error: "Host not found.",
+        },
+        {
+          status: 500,
+        }
       );
-
-      const { error: updateError } =
-        await supabaseAdmin
-          .from("appointments")
-          .update({
-            status: "cancelled",
-          })
-          .eq("id", oldAppointmentId);
-
-      if (updateError) {
-        console.error(
-          "UPDATE ERROR:",
-          updateError
-        );
-
-        return NextResponse.json(
-          {
-            error:
-              "Failed to cancel previous appointment.",
-          },
-          {
-            status: 500,
-          }
-        );
-      }
     }
 
-    return NextResponse.json({
-      success: true,
-      appointment: newAppointment,
-    });
+    try {
+      await sendEmail({
+        to: host.email,
+        subject: "New Appointment Request",
+        react: createElement(BookingRequested, {
+          hostName: host.full_name,
+          clientName,
+          clientEmail: email,
+          title,
+          date,
+          startTime: start_time,
+          endTime: end_time,
+        }),
+      });
+
+    console.log("Booking request email sent.");
   } catch (error) {
-    console.error(
-      "BOOK APPOINTMENT ERROR:",
-      error
+    console.error("Failed to send booking request email:", error);
+  }
+
+  if (
+    oldAppointmentId &&
+    oldAppointmentId !== newAppointment.id
+  ) {
+    console.log(
+      "CANCELLING OLD APPOINTMENT:",
+      oldAppointmentId
     );
 
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Internal server error",
-      },
-      {
-        status: 500,
-      }
-    );
+    const { error: updateError } =
+      await supabaseAdmin
+        .from("appointments")
+        .update({
+          status: "cancelled",
+        })
+        .eq("id", oldAppointmentId);
+
+    if (updateError) {
+      console.error(
+        "UPDATE ERROR:",
+        updateError
+      );
+
+      return NextResponse.json(
+        {
+          error:
+            "Failed to cancel previous appointment.",
+        },
+        {
+          status: 500,
+        }
+      );
+    }
   }
+
+  return NextResponse.json({
+    success: true,
+    appointment: newAppointment,
+  });
+} catch (error) {
+  console.error(
+    "BOOK APPOINTMENT ERROR:",
+    error
+  );
+
+  return NextResponse.json(
+    {
+      error:
+        error instanceof Error
+          ? error.message
+          : "Internal server error",
+    },
+    {
+      status: 500,
+    }
+  );
+}
 }
