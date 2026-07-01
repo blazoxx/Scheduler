@@ -72,6 +72,9 @@ export default function AIScheduler({
       setError("");
       setResult(null);
 
+      console.log("SELECTED HOST:", selectedHost);
+      console.log("HOSTS:", hosts);
+
       const response = await fetch("/api/ai-schedule", {
         method: "POST",
         headers: {
@@ -157,15 +160,12 @@ export default function AIScheduler({
           if (!suggestion) return;
 
           try {
+            console.log("BOOKING HOST ID:", hosts ? selectedHost : userId);
+
             console.log({
+              selectedHost,
+              hosts,
               userId,
-              clientName,
-              email,
-              title: suggestion.title,
-              date: suggestion.date,
-              start_time: suggestion.start_time,
-              end_time: suggestion.end_time,
-              duration: suggestion.duration,
             });
             const response = await fetch("/api/book-appointment", {
               method: "POST",

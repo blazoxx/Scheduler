@@ -10,6 +10,7 @@ import AppointmentForm from "@/src/components/AppointmentForm";
 import AppointmentList from "@/src/components/AppointmentList";
 import DashboardCards from "@/src/components/DashboardCards";
 import BookingLinkCard from "@/src/components/dashboard/BookingLinkCard";
+import PendingRequests from "@/src/components/PendingRequests";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -50,31 +51,19 @@ export default function Dashboard() {
 
     setToday(
       appointments.filter(
-        (a) =>
-          a.status === "scheduled" &&
-          a.date === todayDate
-      ).length
+        (a) => a.status === "scheduled" && a.date === todayDate,
+      ).length,
     );
 
     setUpcoming(
       appointments.filter(
-        (a) =>
-          a.status === "scheduled" &&
-          a.date >= todayDate
-      ).length
+        (a) => a.status === "scheduled" && a.date >= todayDate,
+      ).length,
     );
 
-    setCompleted(
-      appointments.filter(
-        (a) => a.status === "completed"
-      ).length
-    );
+    setCompleted(appointments.filter((a) => a.status === "completed").length);
 
-    setCancelled(
-      appointments.filter(
-        (a) => a.status === "cancelled"
-      ).length
-    );
+    setCancelled(appointments.filter((a) => a.status === "cancelled").length);
   }
 
   async function checkSession() {
@@ -93,12 +82,7 @@ export default function Dashboard() {
       .eq("id", user.id)
       .single();
 
-    if (
-      error ||
-      !profile ||
-      profile.role !== "host" ||
-      !profile.is_verified
-    ) {
+    if (error || !profile || profile.role !== "host" || !profile.is_verified) {
       router.replace("/my-bookings");
       return;
     }
@@ -128,11 +112,7 @@ export default function Dashboard() {
   }
 
   if (loading) {
-    return (
-      <div className="p-8">
-        Checking permissions...
-      </div>
-    );
+    return <div className="p-8">Checking permissions...</div>;
   }
 
   return (
@@ -146,14 +126,15 @@ export default function Dashboard() {
         cancelled={cancelled}
       />
 
-      {username && (
-        <BookingLinkCard username={username} />
-      )}
+      {username && <BookingLinkCard username={username} />}
 
       <AvailabilityForm />
       <AvailabilityList />
 
       <AppointmentForm />
+      
+      <PendingRequests />
+      
       <AppointmentList />
 
       <button

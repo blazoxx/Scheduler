@@ -46,7 +46,11 @@ export async function POST(req: NextRequest) {
       .select("id,start_time,end_time")
       .eq("user_id", userId)
       .eq("date", date)
-      .in("status", ["scheduled", "completed"]);
+      .in("status", [
+        "pending",
+        "scheduled",
+        "completed",
+      ]);
 
     if (conflictError) {
       return NextResponse.json(
@@ -91,7 +95,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { error } = await supabaseAdmin
+    console.log({
+      userId,
+      clientName,
+      email,
+      title,
+      date,
+      start_time,
+      end_time,
+    });
+
+    const { data, error } = await supabaseAdmin
       .from("appointments")
       .insert({
         user_id: userId,
@@ -101,10 +115,14 @@ export async function POST(req: NextRequest) {
         date,
         start_time,
         end_time,
-        status: "scheduled",
-      });
+        status: "pending",
+      })
+      .select()
+      .single();
 
     if (error) {
+      console.error("SUPABASE INSERT ERROR:", error);
+
       return NextResponse.json(
         {
           error: error.message,
@@ -117,13 +135,17 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
+      appointment: data,
     });
   } catch (error) {
-    console.error(error);
+    console.error("BOOK APPOINTMENT ERROR:", error);
 
     return NextResponse.json(
       {
-        error: "Internal server error",
+        error:
+          error instanceof Error
+            ? error.message
+            : "Internal server error",
       },
       {
         status: 500,
