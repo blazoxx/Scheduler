@@ -7,9 +7,16 @@ import AIScheduler from "./AIScheduler";
 type Props = {
   userId: string;
   username: string;
+  fullName: string;
+  email: string;
 };
 
-export default function BookingCalendar({ userId, username }: Props) {
+export default function BookingCalendar({
+  userId,
+  username,
+  fullName,
+  email,
+}: Props) {
   const [selectedDate, setSelectedDate] = useState("");
   const [slots, setSlots] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -47,7 +54,13 @@ export default function BookingCalendar({ userId, username }: Props) {
 
   return (
     <div className="space-y-4">
-      <AIScheduler userId={userId} username={username} />
+      <AIScheduler
+        userId={userId}
+        username={username}
+        fullName={fullName}
+        email={email}
+      />
+      
       <input
         type="date"
         value={selectedDate}

@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 type Props = {
   userId: string;
   username: string;
+  fullName: string;
+  email: string;
 };
 
 type Suggestion = {
@@ -34,7 +36,12 @@ type ScheduleResult = {
   slotResult: SlotResult;
 };
 
-export default function AIScheduler({ userId, username }: Props) {
+export default function AIScheduler({
+  userId,
+  username,
+  fullName,
+  email,
+}: Props) {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScheduleResult | null>(null);
@@ -98,6 +105,8 @@ export default function AIScheduler({ userId, username }: Props) {
       <AIResultCard
         loading={loading}
         slotResult={result?.slotResult ?? null}
+        defaultName={fullName}
+        defaultEmail={email}
         onConfirm={async ({
           clientName,
           email,
