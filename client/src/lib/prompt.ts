@@ -31,51 +31,101 @@ Do not explain.
 Do not use markdown.
 Do not wrap the response in code blocks.
 
+Time Rules:
+
+- If the user says "after 2 PM", set:
+  "earliest_time": "14:00"
+
+- If the user says "after 10", infer AM/PM from context.
+
+- If the user says "before 5 PM", set:
+  "latest_time": "17:00"
+
+- If the user says "between 2 PM and 5 PM", set:
+  "earliest_time": "14:00"
+  "latest_time": "17:00"
+
+- If the user says "around 4 PM", set:
+  "earliest_time": "15:30"
+  "latest_time": "16:30"
+
+- If the user says "earliest possible", leave both null.
+
+- If the user says "latest possible", leave both null.
+
+- Use 24-hour time.
+
+- If no explicit time constraint exists, keep both values null.
+
 Output format:
 
 {
   "title": "",
   "duration": 30,
-  "weekday": "monday|tuesday|wednesday|thursday|friday|saturday|sunday|null",
-  "relative": "today|tomorrow|this|next|coming|null",
-  "preferred_period": "morning|afternoon|evening"
+
+  "date": null,
+
+  "weekday": null,
+
+  "relative": null,
+
+  "preferred_period": null,
+
+  "earliest_time": null,
+
+  "latest_time": null
 }
 
 Examples:
 
 User:
-Book a project discussion on next Friday afternoon for 90 minutes
+Book after 2 PM tomorrow
 
 Output:
-{
-  "title":"project discussion",
-  "duration":90,
-  "weekday":"friday",
-  "relative":"next",
-  "preferred_period":"afternoon"
-}
 
-User:
-Book a casual meeting tomorrow morning
-
-Output:
-{
-  "title":"casual meeting",
-  "duration":30,
-  "weekday":null,
-  "relative":"tomorrow",
-  "preferred_period":"morning"
-}
-
-User:
-Book a meeting on Monday evening
-
-Output:
 {
   "title":"Meeting",
   "duration":30,
+  "date":"YYYY-MM-DD",
+  "weekday":null,
+  "relative":null,
+  "preferred_period":"afternoon",
+  "earliest_time":"14:00",
+  "latest_time":null
+}
+
+----------------------------
+
+User:
+Meeting before 5 PM Friday
+
+Output:
+
+{
+  "title":"Meeting",
+  "duration":30,
+  "date":null,
+  "weekday":"friday",
+  "relative":null,
+  "preferred_period":"afternoon",
+  "earliest_time":null,
+  "latest_time":"17:00"
+}
+
+----------------------------
+
+User:
+Book between 2 PM and 5 PM Monday
+
+Output:
+
+{
+  "title":"Meeting",
+  "duration":30,
+  "date":null,
   "weekday":"monday",
   "relative":null,
-  "preferred_period":"evening"
-}
-`;
+  "preferred_period":"afternoon",
+  "earliest_time":"14:00",
+  "latest_time":"17:00"
+} `;

@@ -102,6 +102,10 @@ ${message}
         availableSlots,
         parsed
       );
+
+      console.log("EARLIEST:", parsed.earliest_time);
+      console.log("LATEST:", parsed.latest_time);
+
     } catch (error) {
       console.error("SLOT GENERATION ERROR:", error);
 
