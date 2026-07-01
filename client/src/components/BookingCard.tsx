@@ -1,22 +1,15 @@
 import { supabase } from "@/src/lib/supabase";
-
-type Appointment = {
-  id: string;
-  title: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-};
+import type { Appointment } from "@/src/types/appointment";
 
 type Props = {
   appointment: Appointment;
+  onReschedule?: (appointment: Appointment) => void;
 };
 
-export default function BookingCard({ appointment }: Props) {
+export default function BookingCard({ appointment, onReschedule }: Props) {
   async function cancelAppointment(id: string) {
     const confirmed = window.confirm(
-      "Are you sure you want to cancel this appointment?"
+      "Are you sure you want to cancel this appointment?",
     );
 
     if (!confirmed) return;
@@ -37,27 +30,24 @@ export default function BookingCard({ appointment }: Props) {
   const today = new Date().toISOString().split("T")[0];
 
   const canManage =
-    appointment.status === "scheduled" &&
-    appointment.date >= today;
+    appointment.status === "scheduled" && appointment.date >= today;
 
   return (
     <div className="rounded-xl border bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">
-          {appointment.title}
-        </h3>
+        <h3 className="text-lg font-semibold">{appointment.title}</h3>
 
         <span
           className={`rounded-full px-3 py-1 text-sm ${
             appointment.status === "scheduled"
               ? "bg-green-100 text-green-700"
               : appointment.status === "completed"
-              ? "bg-blue-100 text-blue-700"
-              : appointment.status === "cancelled"
-              ? "bg-gray-100 text-gray-700"
-              : appointment.status === "pending"
-              ? "bg-yellow-100 text-yellow-700"
-              : "bg-red-100 text-red-700"
+                ? "bg-blue-100 text-blue-700"
+                : appointment.status === "cancelled"
+                  ? "bg-gray-100 text-gray-700"
+                  : appointment.status === "pending"
+                    ? "bg-yellow-100 text-yellow-700"
+                    : "bg-red-100 text-red-700"
           }`}
         >
           {appointment.status}
@@ -81,7 +71,10 @@ export default function BookingCard({ appointment }: Props) {
             Cancel
           </button>
 
-          <button className="rounded bg-blue-500 px-4 py-2 text-white">
+          <button
+            onClick={() => onReschedule?.(appointment)}
+            className="rounded bg-blue-500 px-4 py-2 text-white"
+          >
             Reschedule
           </button>
         </div>

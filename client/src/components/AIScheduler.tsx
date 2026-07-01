@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import AIResultCard from "./AIResultCard";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AIResultCard from "./AIResultCard";
+import type { Appointment } from "@/src/types/appointment";
 
 type Host = {
   id: string;
@@ -18,6 +19,9 @@ type Props = {
   username?: string;
 
   hosts?: Host[];
+
+  appointmentToReschedule: Appointment | null;
+  clearReschedule: () => void;
 };
 
 type Suggestion = {
@@ -48,23 +52,29 @@ type ScheduleResult = {
 export default function AIScheduler({
   userId,
   username,
-  fullName,
+ fullName,
   email,
   hosts,
+  appointmentToReschedule,
+  clearReschedule,
 }: Props) {
+  const router = useRouter();
+
   const [message, setMessage] = useState("");
-  const [selectedHost, setSelectedHost] = useState("");
+
+  // User-selected host (null = first host)
+  const [selectedHostId, setSelectedHostId] = useState<string | null>(null);
+
+  // Actual host currently being used
+  const activeHostId = selectedHostId ?? hosts?.[0]?.id ?? "";
+
+  const activeHostData = hosts?.find(
+    (host) => host.id === activeHostId
+  );
+
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ScheduleResult | null>(null);
   const [error, setError] = useState("");
-  const router = useRouter();
-
-  useEffect(() => {
-    if (hosts && hosts.length > 0 && !selectedHost) {
-      setSelectedHost(hosts[0].id);
-    }
-  }, [hosts, selectedHost]);
-  const selectedHostData = hosts?.find((host) => host.id === selectedHost);
 
   async function handleSchedule() {
     try {
@@ -72,53 +82,88 @@ export default function AIScheduler({
       setError("");
       setResult(null);
 
-      console.log("SELECTED HOST:", selectedHost);
-      console.log("HOSTS:", hosts);
-
       const response = await fetch("/api/ai-schedule", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: hosts ? selectedHost : userId,
+          userId: hosts ? activeHostId : userId,
           message,
+          appointmentToReschedule,
         }),
       });
 
       const data = await response.json();
-      console.log("API RESPONSE:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Failed to schedule");
       }
 
       setResult(data);
-      console.log("SETTING RESULT");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong"
+      );
     } finally {
       setLoading(false);
     }
   }
 
-  console.log("RESULT STATE:", result);
-
   return (
-    <div className="border rounded-lg p-4 space-y-4">
-      <h2 className="text-xl font-semibold">AI Scheduler</h2>
+    <div className="space-y-4 rounded-lg border p-4">
+      <h2 className="text-xl font-semibold">
+        {appointmentToReschedule
+          ? "Reschedule Appointment"
+          : "AI Scheduler"}
+      </h2>
+
+      {appointmentToReschedule && (
+        <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-3">
+          <p className="font-medium">
+            Rescheduling:
+          </p>
+
+          <p>{appointmentToReschedule.title}</p>
+
+          <p>
+            {appointmentToReschedule.date}
+          </p>
+
+          <p>
+            {appointmentToReschedule.start_time} -{" "}
+            {appointmentToReschedule.end_time}
+          </p>
+
+          <button
+            onClick={clearReschedule}
+            className="mt-3 rounded bg-gray-600 px-3 py-1 text-white"
+          >
+            Cancel Reschedule
+          </button>
+        </div>
+      )}
 
       {hosts && (
         <div className="space-y-2">
-          <label className="font-medium">Select Host</label>
+          <label className="font-medium">
+            Select Host
+          </label>
 
           <select
-            value={selectedHost}
-            onChange={(e) => setSelectedHost(e.target.value)}
+            value={activeHostId}
+            onChange={(e) =>
+              setSelectedHostId(e.target.value)
+            }
             className="w-full rounded border p-3"
           >
             {hosts.map((host) => (
-              <option key={host.id} value={host.id}>
+              <option
+                key={host.id}
+                value={host.id}
+              >
                 {host.full_name} (@{host.username})
               </option>
             ))}
@@ -130,18 +175,24 @@ export default function AIScheduler({
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Need a 30 minute meeting next Friday afternoon regarding project discussion"
-        className="w-full border rounded p-3 min-h-30"
+        className="min-h-32 w-full rounded border p-3"
       />
 
       <button
         onClick={handleSchedule}
         disabled={loading || !message}
-        className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
+        className="rounded bg-blue-600 px-4 py-2 text-white disabled:opacity-50"
       >
-        {loading ? "Analyzing..." : "Schedule with AI"}
+        {loading
+          ? "Analyzing..."
+          : appointmentToReschedule
+          ? "Find New Slot"
+          : "Schedule with AI"}
       </button>
 
-      {error && <p className="text-red-500">{error}</p>}
+      {error && (
+        <p className="text-red-500">{error}</p>
+      )}
 
       <AIResultCard
         loading={loading}
@@ -152,56 +203,73 @@ export default function AIScheduler({
           clientName,
           email,
           suggestion,
-        }: {
-          clientName: string;
-          email: string;
-          suggestion?: Suggestion | null;
         }) => {
           if (!suggestion) return;
 
           try {
-            console.log("BOOKING HOST ID:", hosts ? selectedHost : userId);
+            const response = await fetch(
+              "/api/book-appointment",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type":
+                    "application/json",
+                },
+                body: JSON.stringify({
+                  userId: hosts
+                    ? activeHostId
+                    : userId,
 
-            console.log({
-              selectedHost,
-              hosts,
-              userId,
-            });
-            const response = await fetch("/api/book-appointment", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                userId: hosts ? selectedHost : userId,
+                  clientName,
+                  email,
 
-                clientName,
-                email,
+                  title: suggestion.title,
+                  date: suggestion.date,
+                  start_time:
+                    suggestion.start_time,
+                  end_time:
+                    suggestion.end_time,
+                  duration:
+                    suggestion.duration,
 
-                title: suggestion.title,
-                date: suggestion.date,
-                start_time: suggestion.start_time,
-                end_time: suggestion.end_time,
-                duration: suggestion.duration,
-              }),
-            });
+                  oldAppointmentId:
+                    appointmentToReschedule?.id,
+                }),
+              }
+            );
 
             const data = await response.json();
 
             if (!response.ok) {
-              throw new Error(data.error || "Booking failed");
+              throw new Error(
+                data.error || "Booking failed"
+              );
             }
 
-            router.push(
-              `/success?username=${
-                hosts ? selectedHostData?.username : username
-              }&date=${suggestion.date}&start=${suggestion.start_time}&end=${suggestion.end_time}&email=${encodeURIComponent(email)}`,
-            );
+            clearReschedule();
 
             setResult(null);
             setMessage("");
+
+            router.push(
+              `/success?username=${
+                hosts
+                  ? activeHostData?.username
+                  : username
+              }&date=${suggestion.date}&start=${
+                suggestion.start_time
+              }&end=${
+                suggestion.end_time
+              }&email=${encodeURIComponent(
+                email
+              )}`
+            );
           } catch (err) {
-            alert(err instanceof Error ? err.message : "Booking failed");
+            alert(
+              err instanceof Error
+                ? err.message
+                : "Booking failed"
+            );
           }
         }}
       />

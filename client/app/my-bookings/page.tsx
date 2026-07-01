@@ -4,16 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/src/lib/supabase";
 import AIScheduler from "@/src/components/AIScheduler";
 import BookingCard from "@/src/components/BookingCard";
-
-type Appointment = {
-  id: string;
-  title: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-  client_name: string;
-};
+import type { Appointment } from "@/src/types/appointment";
 
 type Host = {
   id: string;
@@ -24,10 +15,27 @@ type Host = {
 export default function MyBookingsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
+
   const [hosts, setHosts] = useState<Host[]>([]);
+
   const [guestName, setGuestName] = useState("");
   const [guestEmail, setGuestEmail] = useState("");
+
   const mounted = useRef(true);
+
+  const schedulerRef = useRef<HTMLDivElement>(null);
+
+  const [appointmentToReschedule, setAppointmentToReschedule] =
+    useState<Appointment | null>(null);
+
+  function handleReschedule(appointment: Appointment) {
+    setAppointmentToReschedule(appointment);
+
+    schedulerRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
 
   async function fetchProfile() {
     const {
@@ -61,9 +69,9 @@ export default function MyBookingsPage() {
     } = await supabase.auth.getUser();
 
     if (!user) {
-      if (!mounted.current) return;
-
-      setLoading(false);
+      if (mounted.current) {
+        setLoading(false);
+      }
       return;
     }
 
@@ -76,9 +84,10 @@ export default function MyBookingsPage() {
     if (error) {
       console.error(error);
 
-      if (!mounted.current) return;
+      if (mounted.current) {
+        setLoading(false);
+      }
 
-      setLoading(false);
       return;
     }
 
@@ -87,6 +96,7 @@ export default function MyBookingsPage() {
     setAppointments(data ?? []);
     setLoading(false);
   }
+
   useEffect(() => {
     mounted.current = true;
 
@@ -109,7 +119,11 @@ export default function MyBookingsPage() {
     }
 
     async function initialize() {
-      await Promise.all([fetchProfile(), fetchBookings(), fetchHosts()]);
+      await Promise.all([
+        fetchProfile(),
+        fetchBookings(),
+        fetchHosts(),
+      ]);
     }
 
     initialize();
@@ -125,7 +139,7 @@ export default function MyBookingsPage() {
         },
         () => {
           fetchBookings();
-        },
+        }
       )
       .subscribe((status) => {
         console.log("Guest channel:", status);
@@ -144,30 +158,42 @@ export default function MyBookingsPage() {
   const today = new Date().toISOString().split("T")[0];
 
   const pendingAppointments = appointments.filter(
-    (appointment) => appointment.status === "pending",
+    (appointment) => appointment.status === "pending"
   );
 
   const upcomingAppointments = appointments.filter(
     (appointment) =>
-      appointment.status === "scheduled" && appointment.date >= today,
+      appointment.status === "scheduled" &&
+      appointment.date >= today
   );
 
   const rejectedAppointments = appointments.filter(
-    (appointment) => appointment.status === "rejected",
+    (appointment) => appointment.status === "rejected"
   );
 
   const historyAppointments = appointments.filter(
     (appointment) =>
       appointment.status === "completed" ||
       appointment.status === "cancelled" ||
-      (appointment.status === "scheduled" && appointment.date < today),
+      (appointment.status === "scheduled" &&
+        appointment.date < today)
   );
 
   return (
     <div className="p-8">
-      <AIScheduler hosts={hosts} fullName={guestName} email={guestEmail} />
+      <div ref={schedulerRef}>
+        <AIScheduler
+          hosts={hosts}
+          fullName={guestName}
+          email={guestEmail}
+          appointmentToReschedule={appointmentToReschedule}
+          clearReschedule={() => setAppointmentToReschedule(null)}
+        />
+      </div>
 
-      <h1 className="text-4xl font-bold mb-6 mt-6">My Bookings</h1>
+      <h1 className="mt-6 mb-6 text-4xl font-bold">
+        My Bookings
+      </h1>
 
       <hr className="mb-6 border-gray-300" />
 
@@ -175,14 +201,21 @@ export default function MyBookingsPage() {
         {/* Pending */}
 
         <section>
-          <h2 className="mb-4 text-2xl font-semibold">Pending Approval</h2>
+          <h2 className="mb-4 text-2xl font-semibold">
+            Pending Approval
+          </h2>
 
           <div className="space-y-4">
             {pendingAppointments.length === 0 ? (
-              <p className="text-gray-500">No pending requests.</p>
+              <p className="text-gray-500">
+                No pending requests.
+              </p>
             ) : (
               pendingAppointments.map((appointment) => (
-                <BookingCard key={appointment.id} appointment={appointment} />
+                <BookingCard
+                  key={appointment.id}
+                  appointment={appointment}
+                />
               ))
             )}
           </div>
@@ -191,14 +224,22 @@ export default function MyBookingsPage() {
         {/* Upcoming */}
 
         <section>
-          <h2 className="mb-4 text-2xl font-semibold">Upcoming Bookings</h2>
+          <h2 className="mb-4 text-2xl font-semibold">
+            Upcoming Bookings
+          </h2>
 
           <div className="space-y-4">
             {upcomingAppointments.length === 0 ? (
-              <p className="text-gray-500">No upcoming bookings.</p>
+              <p className="text-gray-500">
+                No upcoming bookings.
+              </p>
             ) : (
               upcomingAppointments.map((appointment) => (
-                <BookingCard key={appointment.id} appointment={appointment} />
+                <BookingCard
+                  key={appointment.id}
+                  appointment={appointment}
+                  onReschedule={handleReschedule}
+                />
               ))
             )}
           </div>
@@ -207,14 +248,21 @@ export default function MyBookingsPage() {
         {/* Rejected */}
 
         <section>
-          <h2 className="mb-4 text-2xl font-semibold">Rejected Requests</h2>
+          <h2 className="mb-4 text-2xl font-semibold">
+            Rejected Requests
+          </h2>
 
           <div className="space-y-4">
             {rejectedAppointments.length === 0 ? (
-              <p className="text-gray-500">No rejected requests.</p>
+              <p className="text-gray-500">
+                No rejected requests.
+              </p>
             ) : (
               rejectedAppointments.map((appointment) => (
-                <BookingCard key={appointment.id} appointment={appointment} />
+                <BookingCard
+                  key={appointment.id}
+                  appointment={appointment}
+                />
               ))
             )}
           </div>
@@ -223,14 +271,21 @@ export default function MyBookingsPage() {
         {/* History */}
 
         <section>
-          <h2 className="mb-4 text-2xl font-semibold">Booking History</h2>
+          <h2 className="mb-4 text-2xl font-semibold">
+            Booking History
+          </h2>
 
           <div className="space-y-4">
             {historyAppointments.length === 0 ? (
-              <p className="text-gray-500">No booking history.</p>
+              <p className="text-gray-500">
+                No booking history.
+              </p>
             ) : (
               historyAppointments.map((appointment) => (
-                <BookingCard key={appointment.id} appointment={appointment} />
+                <BookingCard
+                  key={appointment.id}
+                  appointment={appointment}
+                />
               ))
             )}
           </div>

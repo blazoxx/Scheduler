@@ -3,7 +3,6 @@ import { supabaseAdmin } from "@/src/lib/supabaseAdmin";
 
 function toMinutes(time: string) {
   const [h, m] = time.split(":").map(Number);
-
   return h * 60 + m;
 }
 
@@ -17,7 +16,20 @@ export async function POST(req: NextRequest) {
       date,
       start_time,
       end_time,
+      oldAppointmentId,
     } = await req.json();
+
+    console.log("BOOK REQUEST");
+    console.log({
+      userId,
+      clientName,
+      email,
+      title,
+      date,
+      start_time,
+      end_time,
+      oldAppointmentId,
+    });
 
     if (
       !userId ||
@@ -38,19 +50,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const {
-      data: conflicts,
-      error: conflictError,
-    } = await supabaseAdmin
+    let query = supabaseAdmin
       .from("appointments")
       .select("id,start_time,end_time")
       .eq("user_id", userId)
       .eq("date", date)
-      .in("status", [
-        "pending",
-        "scheduled",
-        "completed",
-      ]);
+      .in("status", ["pending", "scheduled", "completed"]);
+
+    if (oldAppointmentId) {
+      query = query.neq("id", oldAppointmentId);
+    }
+
+    const {
+      data: conflicts,
+      error: conflictError,
+    } = await query;
 
     if (conflictError) {
       return NextResponse.json(
@@ -66,28 +80,26 @@ export async function POST(req: NextRequest) {
     const newStart = toMinutes(start_time);
     const newEnd = toMinutes(end_time);
 
-    const overlapping = (conflicts ?? []).some(
-      (appointment) => {
-        const existingStart = toMinutes(
-          appointment.start_time
-        );
+    const overlapping = (conflicts ?? []).some((appointment) => {
+      const existingStart = toMinutes(
+        appointment.start_time
+      );
 
-        const existingEnd = toMinutes(
-          appointment.end_time
-        );
+      const existingEnd = toMinutes(
+        appointment.end_time
+      );
 
-        return (
-          newStart < existingEnd &&
-          newEnd > existingStart
-        );
-      }
-    );
+      return (
+        newStart < existingEnd &&
+        newEnd > existingStart
+      );
+    });
 
     if (overlapping) {
       return NextResponse.json(
         {
           error:
-            "That time slot is no longer available. Please choose another available slot.",
+            "That time slot is no longer available.",
         },
         {
           status: 409,
@@ -95,17 +107,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log({
-      userId,
-      clientName,
-      email,
-      title,
-      date,
-      start_time,
-      end_time,
-    });
-
-    const { data, error } = await supabaseAdmin
+    const {
+      data: newAppointment,
+      error: insertError,
+    } = await supabaseAdmin
       .from("appointments")
       .insert({
         user_id: userId,
@@ -120,12 +125,12 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
 
-    if (error) {
-      console.error("SUPABASE INSERT ERROR:", error);
+    if (insertError) {
+      console.error("INSERT ERROR:", insertError);
 
       return NextResponse.json(
         {
-          error: error.message,
+          error: insertError.message,
         },
         {
           status: 500,
@@ -133,12 +138,52 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    console.log("NEW APPOINTMENT:", newAppointment.id);
+
+    if (
+      oldAppointmentId &&
+      oldAppointmentId !== newAppointment.id
+    ) {
+      console.log(
+        "CANCELLING OLD APPOINTMENT:",
+        oldAppointmentId
+      );
+
+      const { error: updateError } =
+        await supabaseAdmin
+          .from("appointments")
+          .update({
+            status: "cancelled",
+          })
+          .eq("id", oldAppointmentId);
+
+      if (updateError) {
+        console.error(
+          "UPDATE ERROR:",
+          updateError
+        );
+
+        return NextResponse.json(
+          {
+            error:
+              "Failed to cancel previous appointment.",
+          },
+          {
+            status: 500,
+          }
+        );
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      appointment: data,
+      appointment: newAppointment,
     });
   } catch (error) {
-    console.error("BOOK APPOINTMENT ERROR:", error);
+    console.error(
+      "BOOK APPOINTMENT ERROR:",
+      error
+    );
 
     return NextResponse.json(
       {
