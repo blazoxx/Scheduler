@@ -104,8 +104,6 @@ export default function MyBookingsPage() {
       <AIScheduler hosts={hosts} fullName={guestName} email={guestEmail} />
 
       <hr className="my-8" />
-
-      <pre>{JSON.stringify(appointments, null, 2)}</pre>
     </div>
   );
 }
