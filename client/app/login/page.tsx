@@ -21,8 +21,27 @@ export default function LoginPage() {
       return;
     }
 
-    console.log(data);
-    router.push("/dashboard");
+    const user = data.user;
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role, is_verified")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile) {
+      alert("Profile not found.");
+      return;
+    }
+
+    console.log(profile);
+
+    if (profile.role === "host" && profile.is_verified) {
+      router.push("/dashboard");
+      return;
+    }
+
+    router.push("/my-bookings");
   }
 
   return (

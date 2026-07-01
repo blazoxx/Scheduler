@@ -1,78 +1,52 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabase";
-import StatusBadge from "./StatusBadge";
 import AppointmentCard from "./AppointmentCard";
-
-type Appointment = {
-  id: string;
-  client_name: string;
-  title: string;
-  date: string;
-  start_time: string;
-  end_time: string;
-  status: "scheduled" | "completed" | "cancelled";
-};
+import type { Appointment } from "@/src/types/appointment";
 
 export default function AppointmentList() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
 
-  useEffect(() => {
-    fetchAppointments();
-
-    const channel = supabase
-      .channel("appointments-channel")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "appointments",
-        },
-        (payload) => {
-          console.log("Realtime:", payload);
-          fetchAppointments();
-        },
-      )
-      .subscribe((status) => {
-        console.log("Channel status:", status);
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  async function fetchAppointments() {
+  const fetchAppointments = useCallback(async () => {
     const {
       data: { user },
     } = await supabase.auth.getUser();
 
+    if (!user) {
+      setAppointments([]);
+      return;
+    }
+
     const { data, error } = await supabase
       .from("appointments")
       .select("*")
-      .eq("user_id", user?.id)
+      .eq("user_id", user.id)
       .order("date")
       .order("start_time");
 
     if (error) {
-      console.log(error);
+      console.error(error);
       return;
     }
 
-    const sorted = [...(data || [])].sort((a, b) => {
-      const priority: Record<string, number> = {
-        scheduled: 0,
-        completed: 1,
-        cancelled: 2,
-      };
+    const priority: Record<Appointment["status"], number> = {
+      pending: 0,
+      scheduled: 1,
+      completed: 2,
+      cancelled: 3,
+      rejected: 4,
+    };
 
-      return priority[a.status] - priority[b.status];
+    const sorted = [...(data ?? [])].sort((a, b) => {
+      const aStatus = a.status as Appointment["status"];
+      const bStatus = b.status as Appointment["status"];
+
+      return priority[aStatus] - priority[bStatus];
     });
 
     setAppointments(sorted);
-  }
+  }, []);
 
   async function completeAppointment(id: string) {
     const { error } = await supabase
@@ -83,7 +57,7 @@ export default function AppointmentList() {
       .eq("id", id);
 
     if (error) {
-      console.log(error);
+      console.error(error);
     }
   }
 
@@ -96,7 +70,7 @@ export default function AppointmentList() {
       .eq("id", id);
 
     if (error) {
-      console.log(error);
+      console.error(error);
     }
   }
 
@@ -104,7 +78,7 @@ export default function AppointmentList() {
     const { error } = await supabase.from("appointments").delete().eq("id", id);
 
     if (error) {
-      console.log(error);
+      console.error(error);
       return;
     }
 
@@ -112,6 +86,52 @@ export default function AppointmentList() {
       prev.filter((appointment) => appointment.id !== id),
     );
   }
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void fetchAppointments();
+    }, 0);
+
+    const channel = supabase
+      .channel("appointments-channel")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "appointments",
+        },
+        (payload) => {
+          console.log("Realtime:", payload);
+          window.setTimeout(() => {
+            void fetchAppointments();
+          }, 0);
+        },
+      )
+      .subscribe((status) => {
+        console.log("Channel status:", status);
+      });
+
+    return () => {
+      window.clearTimeout(timer);
+      supabase.removeChannel(channel);
+    };
+  }, [fetchAppointments]);
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const upcomingAppointments = appointments.filter(
+    (appointment) =>
+      appointment.status === "scheduled" && appointment.date >= today,
+  );
+
+  const historyAppointments = appointments.filter(
+    (appointment) =>
+      appointment.status === "completed" ||
+      appointment.status === "cancelled" ||
+      appointment.status === "rejected" ||
+      (appointment.status === "scheduled" && appointment.date < today),
+  );
 
   if (appointments.length === 0) {
     return (
@@ -123,39 +143,39 @@ export default function AppointmentList() {
     );
   }
 
-  const upcomingAppointments = appointments.filter(
-    (appointment) => appointment.status === "scheduled",
-  );
-
-  const historyAppointments = appointments.filter(
-    (appointment) => appointment.status !== "scheduled",
-  );
-
   return (
-    <div className="space-y-4 mt-8">
-      <h2 className="text-2xl font-bold">Upcoming Appointments</h2>
+    <div className="mt-8 space-y-4">
+      <h2 className="mt-10 text-2xl font-bold">Upcoming Appointments</h2>
 
-      {upcomingAppointments.map((appointment) => (
-        <AppointmentCard
-          key={appointment.id}
-          appointment={appointment}
-          onComplete={completeAppointment}
-          onCancel={cancelAppointment}
-          onDelete={deleteAppointment}
-        />
-      ))}
+      {upcomingAppointments.length === 0 ? (
+        <p className="mt-4 text-gray-500">No upcoming appointments.</p>
+      ) : (
+        upcomingAppointments.map((appointment) => (
+          <AppointmentCard
+            key={appointment.id}
+            appointment={appointment as Appointment}
+            onComplete={completeAppointment}
+            onCancel={cancelAppointment}
+            onDelete={deleteAppointment}
+          />
+        ))
+      )}
 
-      <h2 className="text-2xl font-bold mt-10">Appointment History</h2>
+      <h2 className="mt-10 text-2xl font-bold">Appointment History</h2>
 
-      {historyAppointments.map((appointment) => (
-        <AppointmentCard
-          key={appointment.id}
-          appointment={appointment}
-          onComplete={completeAppointment}
-          onCancel={cancelAppointment}
-          onDelete={deleteAppointment}
-        />
-      ))}
+      {historyAppointments.length === 0 ? (
+        <p className="mt-4 text-gray-500">No appointment history.</p>
+      ) : (
+        historyAppointments.map((appointment) => (
+          <AppointmentCard
+            key={appointment.id}
+            appointment={appointment as Appointment}
+            onComplete={completeAppointment}
+            onCancel={cancelAppointment}
+            onDelete={deleteAppointment}
+          />
+        ))
+      )}
     </div>
   );
 }

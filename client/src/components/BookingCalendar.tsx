@@ -1,18 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAvailableSlots } from "@/src/lib/slotGenerator";
 import PublicBookingForm from "./PublicBookingForm";
 import AIScheduler from "./AIScheduler";
 
 type Props = {
   userId: string;
   username: string;
+  fullName: string;
+  email: string;
 };
 
 export default function BookingCalendar({
   userId,
   username,
+  fullName,
+  email,
 }: Props) {
   const [selectedDate, setSelectedDate] = useState("");
   const [slots, setSlots] = useState<string[]>([]);
@@ -25,15 +28,25 @@ export default function BookingCalendar({
     async function loadSlots() {
       setLoading(true);
 
-      try {
-        const availableSlots = await getAvailableSlots(userId, selectedDate);
+      const response = await fetch("/api/available-slots", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId,
+          date: selectedDate,
+          duration: 30,
+        }),
+      });
 
-        setSlots(availableSlots);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error ?? "Failed to load slots");
       }
+
+      setSlots(data.slots);
     }
 
     loadSlots();
@@ -41,7 +54,15 @@ export default function BookingCalendar({
 
   return (
     <div className="space-y-4">
-      <AIScheduler userId={userId} />
+      <AIScheduler
+        userId={userId}
+        username={username}
+        fullName={fullName}
+        email={email}
+        appointmentToReschedule={null}
+        clearReschedule={() => {}}
+      />
+      
       <input
         type="date"
         value={selectedDate}

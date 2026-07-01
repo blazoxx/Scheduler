@@ -8,21 +8,38 @@ type Suggestion = {
   start_time: string;
   end_time: string;
   duration: number;
+  score: number;
+};
+
+type SlotResult = {
+  exactMatch: boolean;
+  message?: string;
+  suggestions: Suggestion[];
 };
 
 type Props = {
-  suggestion: Suggestion | null;
+  slotResult: SlotResult | null;
   loading?: boolean;
-  onConfirm?: (clientName: string, email: string) => void;
+
+  defaultName?: string;
+  defaultEmail?: string;
+
+  onConfirm?: (data: {
+    clientName: string;
+    email: string;
+    suggestion: Suggestion;
+  }) => void;
 };
 
 export default function AIResultCard({
-  suggestion,
+  slotResult,
   loading = false,
+  defaultName,
+  defaultEmail,
   onConfirm,
 }: Props) {
-  const [clientName, setClientName] = useState("");
-  const [email, setEmail] = useState("");
+  const [clientName, setClientName] = useState(defaultName ?? "");
+  const [email, setEmail] = useState(defaultEmail ?? "");
 
   if (loading) {
     return (
@@ -30,65 +47,33 @@ export default function AIResultCard({
         <h3 className="text-xl font-semibold mb-4">AI Scheduler</h3>
 
         <div className="space-y-2 text-gray-500">
-          <p>🤖 Analyzing request...</p>
-          <p>📅 Finding available slots...</p>
-          <p>⚡ Preparing recommendation...</p>
+          <p>Understanding your request...</p>
+          <p>Searching available slots...</p>
+          <p>Ranking the best options...</p>
         </div>
       </div>
     );
   }
 
-  if (!suggestion) {
+  if (!slotResult) {
     return (
-      <div className="rounded-xl border border-dashed p-6 bg-white text-center text-gray-500">
-        AI suggestion will appear here.
+      <div className="rounded-xl border border-dashed p-6 text-center text-gray-500">
+        AI suggestions will appear here.
       </div>
     );
   }
-
-  const formattedDate = new Date(suggestion.date).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
 
   return (
-    <div className="rounded-xl border bg-white shadow-sm p-6 space-y-5">
-      <div>
-        <h2 className="text-2xl font-bold">AI Suggestion</h2>
+    <div className="space-y-5">
+      {!slotResult.exactMatch && (
+        <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-4">
+          <h3 className="font-semibold text-yellow-900">
+            Closest Available Slots
+          </h3>
 
-        <p className="text-gray-500">Review before confirming.</p>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <p className="text-sm text-gray-500">Meeting</p>
-
-          <p className="text-xl font-semibold">{suggestion.title}</p>
+          <p className="text-sm text-yellow-800 mt-1">{slotResult.message}</p>
         </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div className="rounded-lg border p-4">
-            <p className="text-sm text-gray-500">Date</p>
-
-            <p className="font-medium">{formattedDate}</p>
-          </div>
-
-          <div className="rounded-lg border p-4">
-            <p className="text-sm text-gray-500">Time</p>
-
-            <p className="font-medium">
-              {suggestion.start_time} - {suggestion.end_time}
-            </p>
-          </div>
-        </div>
-
-        <div className="rounded-lg border p-4">
-          <p className="text-sm text-gray-500">Duration</p>
-
-          <p className="font-medium">{suggestion.duration} minutes</p>
-        </div>
-      </div>
+      )}
 
       <div className="space-y-3">
         <input
@@ -108,13 +93,70 @@ export default function AIResultCard({
         />
       </div>
 
-      <button
-        disabled={!clientName.trim() || !email.trim()}
-        onClick={() => onConfirm?.(clientName.trim(), email.trim())}
-        className="w-full rounded-lg bg-blue-600 py-3 text-white font-medium disabled:opacity-50 hover:bg-blue-700 transition"
-      >
-        Confirm Booking
-      </button>
+      <div className="space-y-4">
+        {slotResult.suggestions.map((suggestion, index) => {
+          const formattedDate = new Date(suggestion.date).toLocaleDateString(
+            "en-IN",
+            {
+              weekday: "long",
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            },
+          );
+
+          return (
+            <div
+              key={`${suggestion.start_time}-${index}`}
+              className="rounded-xl border bg-white shadow-sm p-5"
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-lg font-semibold">{suggestion.title}</h3>
+
+                  <p className="text-gray-500 text-sm">{formattedDate}</p>
+                </div>
+
+                {index === 0 && (
+                  <span className="rounded-full bg-green-100 text-green-700 px-3 py-1 text-xs font-medium">
+                    Best Match
+                  </span>
+                )}
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div className="rounded border p-3">
+                  <p className="text-xs text-gray-500">Time</p>
+
+                  <p className="font-medium">
+                    {suggestion.start_time} - {suggestion.end_time}
+                  </p>
+                </div>
+
+                <div className="rounded border p-3">
+                  <p className="text-xs text-gray-500">Duration</p>
+
+                  <p className="font-medium">{suggestion.duration} mins</p>
+                </div>
+              </div>
+
+              <button
+                disabled={!clientName.trim() || !email.trim()}
+                onClick={() =>
+                  onConfirm?.({
+                    clientName: clientName.trim(),
+                    email: email.trim(),
+                    suggestion,
+                  })
+                }
+                className="mt-5 w-full rounded-lg bg-blue-600 py-3 text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                Book This Slot
+              </button>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

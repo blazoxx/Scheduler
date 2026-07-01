@@ -25,7 +25,12 @@ export default async function Page({
         <p className="text-gray-400">@{profile.username}</p>
       </div>
 
-      <BookingCalendar userId={profile.id} username={profile.username} />
+      <BookingCalendar
+        userId={profile.id}
+        username={profile.username}
+        fullName={profile.full_name}
+        email={profile.email}
+      />
     </div>
   );
 }
