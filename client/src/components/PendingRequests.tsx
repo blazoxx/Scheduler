@@ -42,15 +42,21 @@ export default function PendingRequests() {
   }
 
   async function approveAppointment(id: string) {
-    const { error } = await supabase
-      .from("appointments")
-      .update({
+    const res = await fetch("/api/update-appointment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        appointmentId: id,
         status: "scheduled",
-      })
-      .eq("id", id);
+      }),
+    });
 
-    if (error) {
-      alert(error.message);
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error);
       return;
     }
 
@@ -58,15 +64,21 @@ export default function PendingRequests() {
   }
 
   async function rejectAppointment(id: string) {
-    const { error } = await supabase
-      .from("appointments")
-      .update({
+    const res = await fetch("/api/update-appointment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        appointmentId: id,
         status: "rejected",
-      })
-      .eq("id", id);
+      }),
+    });
 
-    if (error) {
-      alert(error.message);
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error);
       return;
     }
 

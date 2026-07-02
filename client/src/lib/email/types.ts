@@ -14,3 +14,17 @@ export interface BookingEmailProps {
 
   reason?: string;
 }
+
+export interface BookingRescheduledProps {
+  clientName: string;
+
+  title: string;
+
+  oldDate: string;
+  oldStartTime: string;
+  oldEndTime: string;
+
+  newDate: string;
+  newStartTime: string;
+  newEndTime: string;
+}
