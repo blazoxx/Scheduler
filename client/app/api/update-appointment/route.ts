@@ -2,8 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin } from "@/src/lib/supabaseAdmin";
 
 import {
-  sendBookingApproved,
-  sendBookingRejected,
+  sendBookingApprovedToGuest,
+  sendBookingApprovedToHost,
+  sendBookingRejectedToGuest,
+  sendBookingRejectedToHost,
+  sendBookingCancelledToGuest,
+  sendBookingCancelledToHost,
 } from "@/src/lib/email/notifications";
 
 export async function POST(req: NextRequest) {
@@ -17,7 +21,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!["scheduled", "rejected"].includes(status)) {
+    if (
+      ![
+        "scheduled",
+        "rejected",
+        "cancelled",
+        "completed",
+      ].includes(status)
+    ) {
       return NextResponse.json(
         { error: "Invalid status." },
         { status: 400 }
@@ -41,6 +52,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const { data: host, error: hostError } =
+      await supabaseAdmin
+        .from("profiles")
+        .select("full_name, email")
+        .eq("id", appointment.user_id)
+        .single();
+
+    if (hostError || !host) {
+      return NextResponse.json(
+        { error: "Host not found." },
+        { status: 500 }
+      );
+    }
+
     // Update status
     const { error: updateError } = await supabaseAdmin
       .from("appointments")
@@ -54,29 +79,53 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const bookingData = {
+      host: {
+        name: host.full_name,
+        email: host.email,
+      },
+      guest: {
+        name: appointment.client_name,
+        email: appointment.email,
+      },
+      appointment: {
+        title: appointment.title,
+        date: appointment.date,
+        startTime: appointment.start_time,
+        endTime: appointment.end_time,
+      },
+    };
+
+    console.log(
+      `Updating appointment ${appointmentId} -> ${status}`
+    );
+
     // Send email
-    console.log("Appointment:", appointment);
+    switch (status) {
+      case "scheduled":
+        await Promise.all([
+          sendBookingApprovedToHost(bookingData),
+          sendBookingApprovedToGuest(bookingData),
+        ]);
+        break;
 
-    if (status === "scheduled") {
-      await sendBookingApproved(appointment.email, {
-        clientName: appointment.client_name,
-        clientEmail: appointment.email,
-        title: appointment.title,
-        date: appointment.date,
-        startTime: appointment.start_time,
-        endTime: appointment.end_time,
-      });
-    }
+      case "rejected":
+        await Promise.all([
+          sendBookingRejectedToHost(bookingData),
+          sendBookingRejectedToGuest(bookingData),
+        ]);
+        break;
 
-    if (status === "rejected") {
-      await sendBookingRejected(appointment.email, {
-        clientName: appointment.client_name,
-        clientEmail: appointment.email,
-        title: appointment.title,
-        date: appointment.date,
-        startTime: appointment.start_time,
-        endTime: appointment.end_time,
-      });
+      case "cancelled":
+        await Promise.all([
+          sendBookingCancelledToHost(bookingData),
+          sendBookingCancelledToGuest(bookingData),
+        ]);
+        break;
+
+      case "completed":
+        // No email needed.
+        break;
     }
 
     return NextResponse.json({

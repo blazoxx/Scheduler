@@ -181,9 +181,10 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    await sendBookingRequestedToHost(bookingData);
-
-    await sendBookingRequestReceivedToGuest(bookingData);
+    await Promise.all([
+      sendBookingRequestedToHost(bookingData),
+      sendBookingRequestReceivedToGuest(bookingData),
+    ]);
 
     if (
       oldAppointmentId &&

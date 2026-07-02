@@ -48,30 +48,37 @@ export default function AppointmentList() {
     setAppointments(sorted);
   }, []);
 
-  async function completeAppointment(id: string) {
-    const { error } = await supabase
-      .from("appointments")
-      .update({
-        status: "completed",
-      })
-      .eq("id", id);
+  async function updateAppointmentStatus(
+    id: string,
+    status: "scheduled" | "rejected" | "cancelled" | "completed",
+  ) {
+    const res = await fetch("/api/update-appointment", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        appointmentId: id,
+        status,
+      }),
+    });
 
-    if (error) {
-      console.error(error);
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error);
+      return;
     }
+
+    fetchAppointments();
+  }
+
+  async function completeAppointment(id: string) {
+    await updateAppointmentStatus(id, "completed");
   }
 
   async function cancelAppointment(id: string) {
-    const { error } = await supabase
-      .from("appointments")
-      .update({
-        status: "cancelled",
-      })
-      .eq("id", id);
-
-    if (error) {
-      console.error(error);
-    }
+    await updateAppointmentStatus(id, "cancelled");
   }
 
   async function deleteAppointment(id: string) {
