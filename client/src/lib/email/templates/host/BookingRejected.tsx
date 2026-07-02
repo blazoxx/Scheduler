@@ -1,37 +1,30 @@
 import { Text } from "@react-email/components";
-import EmailLayout from "./layout/EmailLayout";
-import { BookingEmailProps } from "../types";
-import AppointmentDetails from "./layout/AppointmentDetails";
+import EmailLayout from "@/src/lib/email/templates/layout/EmailLayout";
+import AppointmentDetails from "@/src/lib/email/templates/layout/AppointmentDetails";
+import { BookingEmailData } from "../../types";
 
 export default function BookingRejected({
-  clientName,
-  title,
-  date,
-  startTime,
-  endTime,
-  reason,
-}: BookingEmailProps) {
+  host,
+  guest,
+  appointment,
+}: BookingEmailData) {
   return (
     <EmailLayout
       preview="Appointment request declined"
       title="Appointment Declined"
     >
-      <Text>Hello {clientName},</Text>
+      <Text>Hello {host.name},</Text>
 
-      <Text>Unfortunately your appointment request could not be approved.</Text>
+      <Text>
+        Your appointment request from <strong>{guest.name}</strong> could not be approved.
+      </Text>
 
       <AppointmentDetails
-        title={title}
-        date={date}
-        startTime={startTime}
-        endTime={endTime}
+        title={appointment.title}
+        date={appointment.date}
+        startTime={appointment.startTime}
+        endTime={appointment.endTime}
       />
-
-      {reason && (
-        <Text>
-          <strong>Reason:</strong> {reason}
-        </Text>
-      )}
     </EmailLayout>
   );
 }

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createElement } from "react";
 import { supabaseAdmin } from "@/src/lib/supabaseAdmin";
-import BookingRequested from "@/src/lib/email/templates/BookingRequested";
-import { sendBookingRequested } from "@/src/lib/email/notifications";
+import {
+  sendBookingRequestedToHost,
+  sendBookingRequestReceivedToGuest,
+} from "@/src/lib/email/notifications";
 
 function toMinutes(time: string) {
   const [h, m] = time.split(":").map(Number);
@@ -163,15 +164,26 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    await sendBookingRequested(host.email, {
-      hostName: host.full_name,
-      clientName,
-      clientEmail: email,
-      title,
-      date,
-      startTime: start_time,
-      endTime: end_time,
-    });
+    const bookingData = {
+      host: {
+        name: host.full_name,
+        email: host.email,
+      },
+      guest: {
+        name: clientName,
+        email,
+      },
+      appointment: {
+        title,
+        date,
+        startTime: start_time,
+        endTime: end_time,
+      },
+    };
+
+    await sendBookingRequestedToHost(bookingData);
+
+    await sendBookingRequestReceivedToGuest(bookingData);
 
     if (
       oldAppointmentId &&

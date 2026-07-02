@@ -1,49 +1,42 @@
 import { Text } from "@react-email/components";
-import EmailLayout from "./layout/EmailLayout";
-import { BookingEmailProps } from "../types";
+import EmailLayout from "@/src/lib/email/templates/layout/EmailLayout";
+import AppointmentDetails from "@/src/lib/email/templates/layout/AppointmentDetails";
+import { BookingEmailData } from "../../types";
 
 export default function BookingRequested({
-  hostName,
-  clientName,
-  clientEmail,
-  title,
-  date,
-  startTime,
-  endTime,
-}: BookingEmailProps) {
+  host,
+  guest,
+  appointment,
+}: BookingEmailData) {
   return (
     <EmailLayout
       preview="You have a new appointment request"
       title="New Appointment Request"
     >
-      <Text>Hello {hostName},</Text>
+      <Text>Hello {host.name},</Text>
 
       <Text>
-        You have received a new appointment request.
+        <strong>{guest.name}</strong> has requested an appointment with you.
       </Text>
 
       <Text>
-        <strong>Client:</strong> {clientName}
+        Please review the request from your dashboard.
+      </Text>
+
+      <AppointmentDetails
+        heading="Appointment Details"
+        title={appointment.title}
+        date={appointment.date}
+        startTime={appointment.startTime}
+        endTime={appointment.endTime}
+      />
+
+      <Text>
+        Guest Email: <strong>{guest.email}</strong>
       </Text>
 
       <Text>
-        <strong>Email:</strong> {clientEmail}
-      </Text>
-
-      <Text>
-        <strong>Title:</strong> {title}
-      </Text>
-
-      <Text>
-        <strong>Date:</strong> {date}
-      </Text>
-
-      <Text>
-        <strong>Time:</strong> {startTime} - {endTime}
-      </Text>
-
-      <Text>
-        Please review this request from your dashboard.
+        You can approve or reject this appointment from your dashboard.
       </Text>
     </EmailLayout>
   );

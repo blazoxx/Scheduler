@@ -1,49 +1,40 @@
 import { Text } from "@react-email/components";
-import EmailLayout from "./layout/EmailLayout";
-import { BookingEmailProps } from "../types";
+import EmailLayout from "@/src/lib/email/templates/layout/EmailLayout";
+import AppointmentDetails from "@/src/lib/email/templates/layout/AppointmentDetails";
+import { BookingEmailData } from "../../types";
 
-export default function BookingRequested({
-  hostName,
-  clientName,
-  clientEmail,
-  title,
-  date,
-  startTime,
-  endTime,
-}: BookingEmailProps) {
+export default function BookingRequestReceived({
+  host,
+  guest,
+  appointment,
+}: BookingEmailData) {
   return (
     <EmailLayout
-      preview="You have a new appointment request"
-      title="New Appointment Request"
+      preview="Your appointment request has been received"
+      title="Appointment Request Received"
     >
-      <Text>Hello {hostName},</Text>
+      <Text>Hello {guest.name},</Text>
 
       <Text>
-        You have received a new appointment request.
+        Your appointment request has been successfully sent to{" "}
+        <strong>{host.name}</strong>.
       </Text>
 
       <Text>
-        <strong>Client:</strong> {clientName}
+        The host will review your request and you'll receive another email once
+        it has been approved or declined.
       </Text>
 
-      <Text>
-        <strong>Email:</strong> {clientEmail}
-      </Text>
+      <AppointmentDetails
+        heading="Requested Appointment"
+        title={appointment.title}
+        date={appointment.date}
+        startTime={appointment.startTime}
+        endTime={appointment.endTime}
+      />
 
       <Text>
-        <strong>Title:</strong> {title}
-      </Text>
-
-      <Text>
-        <strong>Date:</strong> {date}
-      </Text>
-
-      <Text>
-        <strong>Time:</strong> {startTime} - {endTime}
-      </Text>
-
-      <Text>
-        Please review this request from your dashboard.
+        Thank you for using our scheduling platform.
       </Text>
     </EmailLayout>
   );

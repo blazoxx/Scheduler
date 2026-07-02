@@ -1,59 +1,40 @@
 import { Text } from "@react-email/components";
-import EmailLayout from "./layout/EmailLayout";
-import AppointmentDetails from "./layout/AppointmentDetails";
-
-interface Props {
-  clientName: string;
-
-  title: string;
-
-  oldDate: string;
-  oldStartTime: string;
-  oldEndTime: string;
-
-  newDate: string;
-  newStartTime: string;
-  newEndTime: string;
-}
+import EmailLayout from "@/src/lib/email/templates/layout/EmailLayout";
+import AppointmentDetails from "@/src/lib/email/templates/layout/AppointmentDetails";
+import { BookingRescheduledData } from "../../types";
 
 export default function BookingRescheduled({
-  clientName,
-  title,
-  oldDate,
-  oldStartTime,
-  oldEndTime,
-  newDate,
-  newStartTime,
-  newEndTime,
-}: Props) {
+  host,
+  guest,
+  oldAppointment,
+  newAppointment,
+}: BookingRescheduledData) {
   return (
     <EmailLayout
       preview="Appointment rescheduled"
       title="Appointment Rescheduled"
     >
-      <Text>Hello {clientName},</Text>
+      <Text>Hello {guest.name},</Text>
 
-      <Text>Your appointment has been rescheduled.</Text>
+      <Text>
+        Your appointment with <strong>{host.name}</strong> has been rescheduled.
+      </Text>
 
       <AppointmentDetails
         heading="Previous Appointment"
-        title={title}
-        date={oldDate}
-        startTime={oldStartTime}
-        endTime={oldEndTime}
+        title={oldAppointment.title}
+        date={oldAppointment.date}
+        startTime={oldAppointment.startTime}
+        endTime={oldAppointment.endTime}
       />
 
       <AppointmentDetails
         heading="New Appointment"
-        title={title}
-        date={newDate}
-        startTime={newStartTime}
-        endTime={newEndTime}
+        title={newAppointment.title}
+        date={newAppointment.date}
+        startTime={newAppointment.startTime}
+        endTime={newAppointment.endTime}
       />
-
-      <Text>
-        {newDate} | {newStartTime} - {newEndTime}
-      </Text>
     </EmailLayout>
   );
 }

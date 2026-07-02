@@ -1,28 +1,27 @@
 import { Text } from "@react-email/components";
-import EmailLayout from "./layout/EmailLayout";
-import { BookingEmailProps } from "../types";
-import AppointmentDetails from "./layout/AppointmentDetails";
+import EmailLayout from "@/src/lib/email/templates/layout/EmailLayout";
+import AppointmentDetails from "@/src/lib/email/templates/layout/AppointmentDetails";
+import { BookingEmailData } from "../../types";
 
 export default function BookingCancelled({
-  clientName,
-  title,
-  date,
-  startTime,
-  endTime,
-}: BookingEmailProps) {
+  host,
+  guest,
+  appointment,
+}: BookingEmailData) {
   return (
     <EmailLayout preview="Appointment cancelled" title="Appointment Cancelled">
-      <Text>Hello {clientName},</Text>
+      <Text>Hello {host.name},</Text>
 
-      <Text>Your appointment has been cancelled.</Text>
+      <Text>
+        Your appointment with <strong>{guest.name}</strong> has been cancelled.
+      </Text>
 
       <AppointmentDetails
-        title={title}
-        date={date}
-        startTime={startTime}
-        endTime={endTime}
+        title={appointment.title}
+        date={appointment.date}
+        startTime={appointment.startTime}
+        endTime={appointment.endTime}
       />
-
     </EmailLayout>
   );
 }
