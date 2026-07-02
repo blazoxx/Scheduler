@@ -1,16 +1,31 @@
-export interface BookingEmailProps {
-  hostName?: string;
-  clientName: string;
-  clientEmail: string;
+export interface HostInfo {
+  name: string;
+  email: string;
+}
 
+export interface GuestInfo {
+  name: string;
+  email: string;
+}
+
+export interface AppointmentInfo {
   title: string;
-
   date: string;
-
   startTime: string;
   endTime: string;
-
   meetingLink?: string;
+}
 
-  reason?: string;
+export interface BookingEmailData {
+  host: HostInfo;
+  guest: GuestInfo;
+  appointment: AppointmentInfo;
+}
+
+export interface BookingRescheduledData {
+  host: HostInfo;
+  guest: GuestInfo;
+
+  oldAppointment: AppointmentInfo;
+  newAppointment: AppointmentInfo;
 }
