@@ -55,6 +55,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Send email
+    console.log("Appointment:", appointment);
+
     if (status === "scheduled") {
       await sendBookingApproved(appointment.email, {
         clientName: appointment.client_name,
