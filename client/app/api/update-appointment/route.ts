@@ -124,7 +124,6 @@ export async function POST(req: NextRequest) {
         break;
 
       case "completed":
-        // No email needed.
         break;
     }
 
@@ -133,7 +132,10 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error) {
-    console.error(error);
+    console.error(
+      "UPDATE APPOINTMENT ROUTE ERROR:",
+      error
+    );
 
     return NextResponse.json(
       { error: "Internal server error." },

@@ -1,5 +1,3 @@
-import { supabase } from "./supabase";
-
 type BookAppointmentParams = {
   userId: string;
   clientName: string;
@@ -8,6 +6,7 @@ type BookAppointmentParams = {
   date: string;
   startTime: string;
   duration: number;
+  oldAppointmentId?: string;
 };
 
 function addMinutes(time: string, minutes: number) {
@@ -28,24 +27,31 @@ export async function bookAppointment({
   date,
   startTime,
   duration,
+  oldAppointmentId,
 }: BookAppointmentParams) {
   const endTime = addMinutes(startTime, duration);
 
-  const { error } = await supabase
-    .from("appointments")
-    .insert({
-      user_id: userId,
-      client_name: clientName,
+  const response = await fetch("/api/book-appointment", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      userId,
+      clientName,
       email,
       title,
       date,
       start_time: startTime,
       end_time: endTime,
-      status: "scheduled",
-    });
+      oldAppointmentId,
+    }),
+  });
+
+  const data = await response.json().catch(() => null);
 
   return {
-    error,
+    error: response.ok ? null : data ?? { error: "Booking failed" },
     endTime,
   };
 }

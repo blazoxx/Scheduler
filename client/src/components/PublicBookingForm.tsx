@@ -9,19 +9,31 @@ type Props = {
   username: string;
   selectedDate: string;
   selectedSlot: string;
+
+  appointmentToReschedule?: {
+    id: string;
+    client_name: string;
+    email: string;
+    title: string;
+  } | null;
 };
 
-export default function PublicBookingForm({
+type BookingFormContentProps = Props;
+
+function BookingFormContent({
   userId,
   username,
   selectedDate,
   selectedSlot,
-}: Props) {
+  appointmentToReschedule,
+}: BookingFormContentProps) {
   const router = useRouter();
 
-  const [clientName, setClientName] = useState("");
-  const [email, setEmail] = useState("");
-  const [title, setTitle] = useState("");
+  const [clientName, setClientName] = useState(
+    appointmentToReschedule?.client_name ?? "",
+  );
+  const [email, setEmail] = useState(appointmentToReschedule?.email ?? "");
+  const [title, setTitle] = useState(appointmentToReschedule?.title ?? "");
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit() {
@@ -49,6 +61,7 @@ export default function PublicBookingForm({
       date: selectedDate,
       startTime: selectedSlot,
       duration: 30,
+      oldAppointmentId: appointmentToReschedule?.id,
     });
 
     setLoading(false);
@@ -112,4 +125,10 @@ export default function PublicBookingForm({
       </button>
     </div>
   );
+}
+
+export default function PublicBookingForm(props: Props) {
+  const formKey = props.appointmentToReschedule?.id ?? "new";
+
+  return <BookingFormContent key={formKey} {...props} />;
 }

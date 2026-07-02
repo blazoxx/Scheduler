@@ -3,6 +3,8 @@ import { supabaseAdmin } from "@/src/lib/supabaseAdmin";
 import {
   sendBookingRequestedToHost,
   sendBookingRequestReceivedToGuest,
+  sendBookingRescheduledToHost,
+  sendBookingRescheduledToGuest,
 } from "@/src/lib/email/notifications";
 
 function toMinutes(time: string) {
@@ -181,10 +183,50 @@ export async function POST(req: NextRequest) {
       },
     };
 
-    await Promise.all([
-      sendBookingRequestedToHost(bookingData),
-      sendBookingRequestReceivedToGuest(bookingData),
-    ]);
+    if (!oldAppointmentId) {
+      try {
+        await Promise.all([
+          sendBookingRequestedToHost(bookingData),
+          sendBookingRequestReceivedToGuest(bookingData),
+        ]);
+      } catch (error) {
+        console.error(
+          "BOOKING REQUEST EMAIL ERROR:",
+          error
+        );
+      }
+    }
+
+    interface Appointment {
+      id: string;
+      title: string;
+      date: string;
+      start_time: string;
+      end_time: string;
+      [key: string]: unknown;
+    }
+
+    let oldAppointment: Appointment | null = null;
+
+    if (oldAppointmentId) {
+      const {
+        data,
+        error: oldAppointmentError,
+      } = await supabaseAdmin
+        .from("appointments")
+        .select("*")
+        .eq("id", oldAppointmentId)
+        .single();
+
+      if (oldAppointmentError) {
+        console.error(
+          "OLD APPOINTMENT FETCH ERROR:",
+          oldAppointmentError
+        );
+      }
+
+      oldAppointment = data;
+    }
 
     if (
       oldAppointmentId &&
@@ -218,6 +260,49 @@ export async function POST(req: NextRequest) {
             status: 500,
           }
         );
+      }
+      if (oldAppointment) {
+        const rescheduleData = {
+          host: {
+            name: host.full_name,
+            email: host.email,
+          },
+
+          guest: {
+            name: clientName,
+            email,
+          },
+
+          oldAppointment: {
+            title: oldAppointment.title,
+            date: oldAppointment.date,
+            startTime: oldAppointment.start_time,
+            endTime: oldAppointment.end_time,
+          },
+
+          newAppointment: {
+            title,
+            date,
+            startTime: start_time,
+            endTime: end_time,
+          },
+        };
+
+        try {
+          await Promise.all([
+            sendBookingRescheduledToHost(
+              rescheduleData
+            ),
+            sendBookingRescheduledToGuest(
+              rescheduleData
+            ),
+          ]);
+        } catch (error) {
+          console.error(
+            "RESCHEDULE EMAIL ERROR:",
+            error
+          );
+        }
       }
     }
 
