@@ -9,6 +9,7 @@ export interface GuestInfo {
 }
 
 export interface AppointmentInfo {
+  id: string;
   title: string;
   date: string;
   startTime: string;
@@ -28,4 +29,15 @@ export interface BookingRescheduledData {
 
   oldAppointment: AppointmentInfo;
   newAppointment: AppointmentInfo;
+}
+
+export interface AppointmentInfo {
+  id: string;
+
+  title: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+
+  meetingLink?: string;
 }

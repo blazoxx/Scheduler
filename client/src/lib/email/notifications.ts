@@ -174,6 +174,7 @@ export async function sendBookingRescheduledToGuest(
 export async function sendBookingApproved(
   to: string,
   data: {
+    id: string;
     clientName: string;
     clientEmail: string;
     title: string;
@@ -187,6 +188,7 @@ export async function sendBookingApproved(
     host: { name: "Host", email: to },
     guest: { name: data.clientName, email: data.clientEmail || to },
     appointment: {
+      id: data.id,
       title: data.title,
       date: data.date,
       startTime: data.startTime,
@@ -199,6 +201,7 @@ export async function sendBookingApproved(
 export async function sendBookingRejected(
   to: string,
   data: {
+    id: string;
     clientName: string;
     clientEmail: string;
     title: string;
@@ -211,6 +214,7 @@ export async function sendBookingRejected(
     host: { name: "Host", email: to },
     guest: { name: data.clientName, email: data.clientEmail || to },
     appointment: {
+      id: data.id,
       title: data.title,
       date: data.date,
       startTime: data.startTime,

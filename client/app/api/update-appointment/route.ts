@@ -89,10 +89,12 @@ export async function POST(req: NextRequest) {
         email: appointment.email,
       },
       appointment: {
+        id: appointment.id,
         title: appointment.title,
         date: appointment.date,
         startTime: appointment.start_time,
         endTime: appointment.end_time,
+        meetingLink: appointment.meeting_link,
       },
     };
 
