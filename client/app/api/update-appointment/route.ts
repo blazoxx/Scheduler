@@ -12,7 +12,11 @@ import {
 
 export async function POST(req: NextRequest) {
   try {
-    const { appointmentId, status } = await req.json();
+    const {
+      appointmentId,
+      status,
+      meetingLink,
+    } = await req.json();
 
     if (!appointmentId || !status) {
       return NextResponse.json(
@@ -69,7 +73,10 @@ export async function POST(req: NextRequest) {
     // Update status
     const { error: updateError } = await supabaseAdmin
       .from("appointments")
-      .update({ status })
+      .update({
+        status,
+        meeting_link: meetingLink,
+      })
       .eq("id", appointmentId);
 
     if (updateError) {
@@ -94,8 +101,8 @@ export async function POST(req: NextRequest) {
         date: appointment.date,
         startTime: appointment.start_time,
         endTime: appointment.end_time,
-        meetingLink: appointment.meeting_link,
-      },
+        meetingLink: meetingLink,
+      }
     };
 
     console.log(
