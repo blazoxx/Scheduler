@@ -41,7 +41,7 @@ export default function PendingRequests() {
     setAppointments(data ?? []);
   }
 
-  async function approveAppointment(id: string) {
+  async function approveAppointment(id: string, meetingLink: string) {
     const res = await fetch("/api/update-appointment", {
       method: "POST",
       headers: {
@@ -50,6 +50,7 @@ export default function PendingRequests() {
       body: JSON.stringify({
         appointmentId: id,
         status: "scheduled",
+        meetingLink,
       }),
     });
 
@@ -105,7 +106,22 @@ export default function PendingRequests() {
             </p>
             <div className="mt-4 flex gap-3">
               <button
-                onClick={() => approveAppointment(appointment.id)}
+                onClick={async () => {
+                  const meetingLink = window.prompt(
+                    "Enter the meeting link (Google Meet, Zoom, etc.)",
+                  );
+
+                  if (!meetingLink) return;
+
+                  try {
+                    new URL(meetingLink);
+                  } catch {
+                    alert("Please enter a valid URL.");
+                    return;
+                  }
+
+                  await approveAppointment(appointment.id, meetingLink);
+                }}
                 className="rounded bg-green-600 px-4 py-2 text-white"
               >
                 Approve
