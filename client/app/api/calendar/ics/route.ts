@@ -37,17 +37,15 @@ export async function GET(req: NextRequest) {
 
     const ics = generateICS({
       title: appointment.title,
-      description: `Meeting Link: ${
-        appointment.meeting_link ?? ""
-      }`,
-      location:
-        appointment.meeting_link ?? "",
-      start: new Date(
-        `${appointment.date}T${appointment.start_time}`
-      ),
-      end: new Date(
-        `${appointment.date}T${appointment.end_time}`
-      ),
+      description: `Meeting Link: ${appointment.meeting_link ?? ""
+        }`,
+      location: appointment.meeting_link ?? "",
+
+      date: appointment.date,
+      startTime: appointment.start_time,
+      endTime: appointment.end_time,
+
+      timezone: appointment.timezone,
     });
 
     return new Response(ics, {
@@ -64,16 +62,16 @@ export async function GET(req: NextRequest) {
     });
 
   } catch (err) {
-  console.error("ICS ROUTE ERROR:", err);
+    console.error("ICS ROUTE ERROR:", err);
 
-  return Response.json(
-    {
-      error: err instanceof Error ? err.message : String(err),
-      stack: err instanceof Error ? err.stack : undefined,
-    },
-    {
-      status: 500,
-    }
-  );
-}
+    return Response.json(
+      {
+        error: err instanceof Error ? err.message : String(err),
+        stack: err instanceof Error ? err.stack : undefined,
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }
