@@ -21,6 +21,8 @@ import GuestBookingCancelled from "./templates/guest/BookingCancelled";
 import HostBookingRescheduled from "./templates/host/BookingRescheduled";
 import GuestBookingRescheduled from "./templates/guest/BookingRescheduled";
 
+import { createCalendarJWT } from "@/src/lib/calendar/jwt";
+
 /* ------------------------------ */
 /* Booking Requested */
 /* ------------------------------ */
@@ -71,12 +73,19 @@ export async function sendBookingApprovedToHost(
 export async function sendBookingApprovedToGuest(
   data: BookingEmailData
 ) {
+  const calendarToken = await createCalendarJWT(
+    data.appointment.id
+  );
+
   return safeSendEmail({
     to: data.guest.email,
     subject: "Appointment Confirmed",
     react: React.createElement(
       GuestBookingApproved,
-      data
+      {
+        ...data,
+        calendarToken,
+      }
     ),
   });
 }
@@ -185,7 +194,7 @@ export async function sendBookingApproved(
   }
 ) {
   return sendBookingApprovedToGuest({
-    host: { name: "Host", email: to },
+    host: { name: "Host", email: to, timezone: null, },
     guest: { name: data.clientName, email: data.clientEmail || to },
     appointment: {
       id: data.id,
@@ -211,7 +220,7 @@ export async function sendBookingRejected(
   }
 ) {
   return sendBookingRejectedToGuest({
-    host: { name: "Host", email: to },
+    host: { name: "Host", email: to, timezone: null, },
     guest: { name: data.clientName, email: data.clientEmail || to },
     appointment: {
       id: data.id,

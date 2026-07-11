@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
     const { data: host, error: hostError } =
       await supabaseAdmin
         .from("profiles")
-        .select("email, full_name")
+        .select("email, full_name, timezone")
         .eq("id", userId)
         .single();
 
@@ -170,12 +170,14 @@ export async function POST(req: NextRequest) {
       host: {
         name: host.full_name,
         email: host.email,
+        timezone: host.timezone,
       },
       guest: {
         name: clientName,
         email,
       },
       appointment: {
+        id: newAppointment.id,
         title,
         date,
         startTime: start_time,
@@ -266,6 +268,7 @@ export async function POST(req: NextRequest) {
           host: {
             name: host.full_name,
             email: host.email,
+            timezone: host.timezone,
           },
 
           guest: {
@@ -274,6 +277,7 @@ export async function POST(req: NextRequest) {
           },
 
           oldAppointment: {
+            id: oldAppointment.id,
             title: oldAppointment.title,
             date: oldAppointment.date,
             startTime: oldAppointment.start_time,
@@ -281,6 +285,7 @@ export async function POST(req: NextRequest) {
           },
 
           newAppointment: {
+            id: newAppointment.id,
             title,
             date,
             startTime: start_time,
