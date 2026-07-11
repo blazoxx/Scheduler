@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/src/lib/supabase";
+import { updateUserTimezone } from "@/src/lib/profile/updateTimezone";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -22,6 +23,8 @@ export default function LoginPage() {
     }
 
     const user = data.user;
+
+    await updateUserTimezone(user.id);
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
