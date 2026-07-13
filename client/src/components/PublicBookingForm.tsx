@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { bookAppointment } from "@/src/lib/bookAppointment";
+import Button from "@/src/components/ui/button";
+import Input from "@/src/components/ui/input";
+import { Card, CardBody } from "@/src/components/ui/card";
+import Badge from "@/src/components/ui/badge";
 
 type Props = {
   userId: string;
@@ -83,47 +87,34 @@ function BookingFormContent({
   }
 
   return (
-    <div className="space-y-4 border rounded p-6 mt-6">
-      <h2 className="text-2xl font-semibold">Book Appointment</h2>
+    <Card className="mt-6">
+      <CardBody className="space-y-5 p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <Badge variant="info">Booking form</Badge>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+              Book Appointment
+            </h2>
+          </div>
+          <div className="text-sm text-slate-500">
+            Date: {selectedDate} · Time: {selectedSlot}
+          </div>
+        </div>
 
-      <input
-        required
-        placeholder="Name"
-        value={clientName}
-        onChange={(e) => setClientName(e.target.value)}
-        className="w-full border rounded p-2"
-      />
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Input required placeholder="Name" value={clientName} onChange={(e) => setClientName(e.target.value)} />
+          <Input required placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <Input required placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+        </div>
 
-      <input
-        required
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full border rounded p-2"
-      />
-
-      <input
-        required
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full border rounded p-2"
-      />
-
-      <div>Date: {selectedDate}</div>
-
-      <div>Time: {selectedSlot}</div>
-
-      <button
-        disabled={
-          loading || !clientName.trim() || !email.trim() || !title.trim()
-        }
-        onClick={handleSubmit}
-        className="bg-blue-600 px-4 py-2 rounded disabled:opacity-50"
-      >
-        {loading ? "Booking..." : "Book Appointment"}
-      </button>
-    </div>
+        <Button
+          disabled={loading || !clientName.trim() || !email.trim() || !title.trim()}
+          onClick={handleSubmit}
+        >
+          {loading ? "Booking..." : "Book Appointment"}
+        </Button>
+      </CardBody>
+    </Card>
   );
 }
 
