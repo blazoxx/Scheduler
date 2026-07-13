@@ -2,6 +2,10 @@
 
 import { useState } from "react";
 import { supabase } from "@/src/lib/supabase";
+import Button from "@/src/components/ui/button";
+import Input from "@/src/components/ui/input";
+import Select from "@/src/components/ui/select";
+import Badge from "@/src/components/ui/badge";
 
 export default function AppointmentForm() {
   const [clientName, setClientName] = useState("");
@@ -11,17 +15,18 @@ export default function AppointmentForm() {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [statusMessage, setStatusMessage] = useState("");
 
   async function addAppointment() {
     if (!clientName || !email || !title || !date || !startTime || !endTime) {
-      alert("Please fill all fields");
+      setStatusMessage("Please fill all fields.");
       return;
     }
 
     const today = new Date().toISOString().split("T")[0];
 
     if (date < today) {
-      alert("Past dates are not allowed");
+      setStatusMessage("Past dates are not allowed.");
       return;
     }
 
@@ -43,7 +48,7 @@ export default function AppointmentForm() {
 
     if (error) {
       console.log(error);
-      alert(error.message);
+      setStatusMessage(error.message);
       return;
     }
 
@@ -52,6 +57,7 @@ export default function AppointmentForm() {
     setTitle("");
     setStartTime("");
     setEndTime("");
+    setStatusMessage("Appointment created successfully.");
 
     if (user && date) {
       const response = await fetch("/api/available-slots", {
@@ -75,114 +81,109 @@ export default function AppointmentForm() {
   }
 
   return (
-    <div className="flex flex-col gap-3 mt-8 border p-4 rounded">
-      <h2 className="text-2xl font-bold">Create Appointment</h2>
+    <div className="flex flex-col gap-4">
+      <Badge variant="info" className="w-fit">Manual booking</Badge>
 
-      <input
-        type="text"
-        placeholder="Client Name"
-        value={clientName}
-        onChange={(e) => setClientName(e.target.value)}
-        className="border p-2"
-      />
+      <div className="grid gap-4">
+        <Input
+          type="text"
+          placeholder="Client name"
+          value={clientName}
+          onChange={(e) => setClientName(e.target.value)}
+        />
 
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="border p-2"
-      />
+        <Input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-      <input
-        type="text"
-        placeholder="Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="border p-2"
-      />
+        <Input
+          type="text"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
 
-      <input
-        type="date"
-        min={new Date().toISOString().split("T")[0]}
-        value={date}
-        onChange={async (e) => {
-          const selectedDate = e.target.value;
+        <Input
+          type="date"
+          min={new Date().toISOString().split("T")[0]}
+          value={date}
+          onChange={async (e) => {
+            const selectedDate = e.target.value;
 
-          setDate(selectedDate);
-          setStartTime("");
-          setEndTime("");
+            setDate(selectedDate);
+            setStartTime("");
+            setEndTime("");
+            setStatusMessage("");
 
-          const {
-            data: { user },
-          } = await supabase.auth.getUser();
+            const {
+              data: { user },
+            } = await supabase.auth.getUser();
 
-          if (user && selectedDate) {
-            const response = await fetch("/api/available-slots", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                userId: user.id,
-                date: selectedDate,
-                duration: 30,
-              }),
-            });
+            if (user && selectedDate) {
+              const response = await fetch("/api/available-slots", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  userId: user.id,
+                  date: selectedDate,
+                  duration: 30,
+                }),
+              });
 
-            const data = await response.json();
+              const data = await response.json();
 
-            if (response.ok) {
-              setAvailableSlots(data.slots);
+              if (response.ok) {
+                setAvailableSlots(data.slots);
+              }
             }
-          }
-        }}
-        className="border p-2"
-      />
+          }}
+        />
 
-      <select
-        value={startTime}
-        onChange={(e) => {
-          const selected = e.target.value;
+        <Select
+          value={startTime}
+          onChange={(e) => {
+            const selected = e.target.value;
 
-          setStartTime(selected);
+            setStartTime(selected);
 
-          const [h, m] = selected.split(":").map(Number);
+            const [h, m] = selected.split(":").map(Number);
 
-          const totalMinutes = h * 60 + m + 30;
+            const totalMinutes = h * 60 + m + 30;
 
-          const endH = Math.floor(totalMinutes / 60)
-            .toString()
-            .padStart(2, "0");
+            const endH = Math.floor(totalMinutes / 60)
+              .toString()
+              .padStart(2, "0");
 
-          const endM = (totalMinutes % 60).toString().padStart(2, "0");
+            const endM = (totalMinutes % 60).toString().padStart(2, "0");
 
-          setEndTime(`${endH}:${endM}`);
-        }}
-        className="border p-2"
-      >
-        <option value="">Select Time</option>
+            setEndTime(`${endH}:${endM}`);
+          }}
+        >
+          <option value="">Select time</option>
+          {availableSlots.map((slot) => (
+            <option key={slot} value={slot}>
+              {slot}
+            </option>
+          ))}
+        </Select>
+      </div>
 
-        {availableSlots.map((slot) => (
-          <option key={slot} value={slot}>
-            {slot}
-          </option>
-        ))}
-      </select>
+      {date && availableSlots.length === 0 ? (
+        <p className="text-sm text-amber-700">No slots available for this date.</p>
+      ) : null}
 
-      {date && availableSlots.length === 0 && (
-        <p className="text-red-500">No slots available for this date.</p>
-      )}
+      {endTime ? <p className="text-sm text-slate-600">Ends at: {endTime}</p> : null}
 
-      {endTime && <p className="text-gray-600">Ends at: {endTime}</p>}
+      {statusMessage ? <p className="text-sm text-slate-600">{statusMessage}</p> : null}
 
-      <button
-        onClick={addAppointment}
-        disabled={!startTime}
-        className="bg-green-500 text-white p-2 rounded disabled:bg-gray-400"
-      >
+      <Button onClick={addAppointment} disabled={!startTime}>
         Create Appointment
-      </button>
+      </Button>
     </div>
   );
 }

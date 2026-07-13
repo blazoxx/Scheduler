@@ -3,6 +3,10 @@
 import { useEffect, useState } from "react";
 import PublicBookingForm from "./PublicBookingForm";
 import AIScheduler from "./AIScheduler";
+import Badge from "@/src/components/ui/badge";
+import Button from "@/src/components/ui/button";
+import { Card, CardBody } from "@/src/components/ui/card";
+import Input from "@/src/components/ui/input";
 
 type Props = {
   userId: string;
@@ -62,32 +66,45 @@ export default function BookingCalendar({
         appointmentToReschedule={null}
         clearReschedule={() => {}}
       />
-      
-      <input
-        type="date"
-        value={selectedDate}
-        onChange={(e) => setSelectedDate(e.target.value)}
-        className="border rounded px-3 py-2"
-      />
 
-      {loading && <p>Loading slots...</p>}
+      <Card>
+        <CardBody className="space-y-5 p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <Badge variant="info">Availability</Badge>
+              <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+                Choose a date and time
+              </h3>
+            </div>
+            <p className="text-sm text-slate-500">Pick a date to load live slots</p>
+          </div>
 
-      {!loading && slots.length === 0 && selectedDate && (
-        <p>No slots available</p>
-      )}
+          <Input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
 
-      <div className="flex flex-wrap gap-2">
-        {slots.map((slot) => (
-          <button
-            key={slot}
-            onClick={() => setSelectedSlot(slot)}
-            className={`border px-4 py-2 rounded
-            ${selectedSlot === slot ? "bg-blue-600" : ""}`}
-          >
-            {slot}
-          </button>
-        ))}
-      </div>
+          {loading && <p className="text-sm text-slate-500">Loading slots...</p>}
+
+          {!loading && slots.length === 0 && selectedDate && (
+            <p className="text-sm text-slate-500">No slots available</p>
+          )}
+
+          <div className="flex flex-wrap gap-3">
+            {slots.map((slot) => (
+              <Button
+                key={slot}
+                variant={selectedSlot === slot ? "primary" : "secondary"}
+                size="sm"
+                onClick={() => setSelectedSlot(slot)}
+              >
+                {slot}
+              </Button>
+            ))}
+          </div>
+        </CardBody>
+      </Card>
 
       {selectedSlot && (
         <PublicBookingForm
