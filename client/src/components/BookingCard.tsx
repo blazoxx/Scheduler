@@ -1,5 +1,8 @@
 import { supabase } from "@/src/lib/supabase";
 import type { Appointment } from "@/src/types/appointment";
+import Badge from "@/src/components/ui/badge";
+import Button from "@/src/components/ui/button";
+import { Card, CardBody } from "@/src/components/ui/card";
 
 type Props = {
   appointment: Appointment;
@@ -33,52 +36,49 @@ export default function BookingCard({ appointment, onReschedule }: Props) {
     appointment.status === "scheduled" && appointment.date >= today;
 
   return (
-    <div className="rounded-xl border bg-white p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold">{appointment.title}</h3>
+    <Card>
+      <CardBody className="space-y-4 p-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold tracking-tight text-slate-950">
+              {appointment.title}
+            </h3>
+            <div className="space-y-1 text-sm text-slate-600">
+              <p>{appointment.date}</p>
+              <p>
+                {appointment.start_time} - {appointment.end_time}
+              </p>
+            </div>
+          </div>
 
-        <span
-          className={`rounded-full px-3 py-1 text-sm ${
-            appointment.status === "scheduled"
-              ? "bg-green-100 text-green-700"
-              : appointment.status === "completed"
-                ? "bg-blue-100 text-blue-700"
-                : appointment.status === "cancelled"
-                  ? "bg-gray-100 text-gray-700"
-                  : appointment.status === "pending"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-red-100 text-red-700"
-          }`}
-        >
-          {appointment.status}
-        </span>
-      </div>
-
-      <div className="mt-4 space-y-1 text-gray-600">
-        <p>📅 {appointment.date}</p>
-
-        <p>
-          🕒 {appointment.start_time} - {appointment.end_time}
-        </p>
-      </div>
-
-      {canManage && (
-        <div className="mt-4 flex gap-3">
-          <button
-            onClick={() => cancelAppointment(appointment.id)}
-            className="rounded bg-red-500 px-4 py-2 text-white"
+          <Badge
+            variant={
+              appointment.status === "scheduled"
+                ? "success"
+                : appointment.status === "completed"
+                  ? "info"
+                  : appointment.status === "cancelled"
+                    ? "neutral"
+                    : appointment.status === "pending"
+                      ? "warning"
+                      : "danger"
+            }
           >
-            Cancel
-          </button>
-
-          <button
-            onClick={() => onReschedule?.(appointment)}
-            className="rounded bg-blue-500 px-4 py-2 text-white"
-          >
-            Reschedule
-          </button>
+            {appointment.status}
+          </Badge>
         </div>
-      )}
-    </div>
+
+        {canManage && (
+          <div className="flex flex-wrap gap-3">
+            <Button variant="danger" size="sm" onClick={() => cancelAppointment(appointment.id)}>
+              Cancel
+            </Button>
+            <Button variant="secondary" size="sm" onClick={() => onReschedule?.(appointment)}>
+              Reschedule
+            </Button>
+          </div>
+        )}
+      </CardBody>
+    </Card>
   );
 }

@@ -1,6 +1,7 @@
 export interface HostInfo {
   name: string;
   email: string;
+  timezone: string | null;
 }
 
 export interface GuestInfo {
@@ -21,6 +22,11 @@ export interface BookingEmailData {
   host: HostInfo;
   guest: GuestInfo;
   appointment: AppointmentInfo;
+}
+
+export interface BookingApprovedEmailData
+  extends BookingEmailData {
+  calendarToken: string;
 }
 
 export interface BookingRescheduledData {

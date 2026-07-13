@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabase";
+import Badge from "@/src/components/ui/badge";
+import Button from "@/src/components/ui/button";
+import { Card, CardBody } from "@/src/components/ui/card";
 
 type Appointment = {
   id: string;
@@ -87,54 +90,62 @@ export default function PendingRequests() {
   }
 
   return (
-    <div className="mt-8 rounded-xl border p-6">
-      <h2 className="mb-6 text-2xl font-bold">Pending Requests</h2>
-
+    <div className="mt-8 space-y-4">
       {appointments.length === 0 ? (
-        <p className="text-gray-500">No pending requests.</p>
+        <Card>
+          <CardBody className="p-5 text-sm text-slate-600">No pending requests.</CardBody>
+        </Card>
       ) : (
         appointments.map((appointment) => (
-          <div key={appointment.id} className="mb-4 rounded-lg border p-4">
-            <h3 className="text-lg font-semibold">{appointment.title}</h3>
+          <Card key={appointment.id}>
+            <CardBody className="space-y-4 p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h3 className="text-lg font-semibold tracking-tight text-slate-950">
+                      {appointment.title}
+                    </h3>
+                    <Badge variant="warning">Pending</Badge>
+                  </div>
+                  <div className="space-y-1 text-sm text-slate-600">
+                    <p>Guest: {appointment.client_name}</p>
+                    <p>{appointment.date}</p>
+                    <p>
+                      {appointment.start_time} - {appointment.end_time}
+                    </p>
+                  </div>
+                </div>
+              </div>
 
-            <p>Guest: {appointment.client_name}</p>
+              <div className="flex flex-wrap gap-3">
+                <Button
+                  onClick={async () => {
+                    const meetingLink = window.prompt(
+                      "Enter the meeting link (Google Meet, Zoom, etc.)",
+                    );
 
-            <p>{appointment.date}</p>
+                    if (!meetingLink) return;
 
-            <p>
-              {appointment.start_time} - {appointment.end_time}
-            </p>
-            <div className="mt-4 flex gap-3">
-              <button
-                onClick={async () => {
-                  const meetingLink = window.prompt(
-                    "Enter the meeting link (Google Meet, Zoom, etc.)",
-                  );
+                    try {
+                      new URL(meetingLink);
+                    } catch {
+                      alert("Please enter a valid URL.");
+                      return;
+                    }
 
-                  if (!meetingLink) return;
+                    await approveAppointment(appointment.id, meetingLink);
+                  }}
+                  size="sm"
+                >
+                  Approve
+                </Button>
 
-                  try {
-                    new URL(meetingLink);
-                  } catch {
-                    alert("Please enter a valid URL.");
-                    return;
-                  }
-
-                  await approveAppointment(appointment.id, meetingLink);
-                }}
-                className="rounded bg-green-600 px-4 py-2 text-white"
-              >
-                Approve
-              </button>
-
-              <button
-                onClick={() => rejectAppointment(appointment.id)}
-                className="rounded bg-red-600 px-4 py-2 text-white"
-              >
-                Reject
-              </button>
-            </div>
-          </div>
+                <Button variant="secondary" size="sm" onClick={() => rejectAppointment(appointment.id)}>
+                  Reject
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
         ))
       )}
     </div>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabase";
 import AppointmentCard from "./AppointmentCard";
 import type { Appointment } from "@/src/types/appointment";
+import { Card, CardBody } from "@/src/components/ui/card";
 
 export default function AppointmentList() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -142,47 +143,67 @@ export default function AppointmentList() {
 
   if (appointments.length === 0) {
     return (
-      <div className="mt-8">
-        <h2 className="text-2xl font-bold">Appointments</h2>
-
-        <p className="mt-4 text-gray-500">No appointments yet.</p>
-      </div>
+      <Card className="mt-8">
+        <CardBody className="p-5 text-sm text-slate-600">
+          No appointments yet.
+        </CardBody>
+      </Card>
     );
   }
 
   return (
-    <div className="mt-8 space-y-4">
-      <h2 className="mt-10 text-2xl font-bold">Upcoming Appointments</h2>
+    <div className="mt-8 space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold tracking-tight text-slate-950">
+          Upcoming Appointments
+        </h3>
 
-      {upcomingAppointments.length === 0 ? (
-        <p className="mt-4 text-gray-500">No upcoming appointments.</p>
-      ) : (
-        upcomingAppointments.map((appointment) => (
-          <AppointmentCard
-            key={appointment.id}
-            appointment={appointment as Appointment}
-            onComplete={completeAppointment}
-            onCancel={cancelAppointment}
-            onDelete={deleteAppointment}
-          />
-        ))
-      )}
+        {upcomingAppointments.length === 0 ? (
+          <Card>
+            <CardBody className="p-5 text-sm text-slate-600">
+              No upcoming appointments.
+            </CardBody>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {upcomingAppointments.map((appointment) => (
+              <AppointmentCard
+                key={appointment.id}
+                appointment={appointment as Appointment}
+                onComplete={completeAppointment}
+                onCancel={cancelAppointment}
+                onDelete={deleteAppointment}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
-      <h2 className="mt-10 text-2xl font-bold">Appointment History</h2>
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold tracking-tight text-slate-950">
+          Appointment History
+        </h3>
 
-      {historyAppointments.length === 0 ? (
-        <p className="mt-4 text-gray-500">No appointment history.</p>
-      ) : (
-        historyAppointments.map((appointment) => (
-          <AppointmentCard
-            key={appointment.id}
-            appointment={appointment as Appointment}
-            onComplete={completeAppointment}
-            onCancel={cancelAppointment}
-            onDelete={deleteAppointment}
-          />
-        ))
-      )}
+        {historyAppointments.length === 0 ? (
+          <Card>
+            <CardBody className="p-5 text-sm text-slate-600">
+              No appointment history.
+            </CardBody>
+          </Card>
+        ) : (
+          <div className="space-y-4">
+            {historyAppointments.map((appointment) => (
+              <AppointmentCard
+                key={appointment.id}
+                appointment={appointment as Appointment}
+                onComplete={completeAppointment}
+                onCancel={cancelAppointment}
+                onDelete={deleteAppointment}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

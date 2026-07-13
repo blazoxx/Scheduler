@@ -1,5 +1,8 @@
 "use client";
 
+import Badge from "@/src/components/ui/badge";
+import { Card, CardBody } from "@/src/components/ui/card";
+
 type Props = {
   today: number;
   upcoming: number;
@@ -14,26 +17,42 @@ export default function DashboardCards({
   cancelled,
 }: Props) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div className="bg-blue-500 text-white p-6 rounded-xl shadow">
-        <h3 className="text-lg font-semibold">Today</h3>
-        <p className="text-3xl font-bold">{today}</p>
-      </div>
-
-      <div className="bg-purple-500 text-white p-6 rounded-xl shadow">
-        <h3 className="text-lg font-semibold">Upcoming</h3>
-        <p className="text-3xl font-bold">{upcoming}</p>
-      </div>
-
-      <div className="bg-green-500 text-white p-6 rounded-xl shadow">
-        <h3 className="text-lg font-semibold">Completed</h3>
-        <p className="text-3xl font-bold">{completed}</p>
-      </div>
-
-      <div className="bg-red-500 text-white p-6 rounded-xl shadow">
-        <h3 className="text-lg font-semibold">Cancelled</h3>
-        <p className="text-3xl font-bold">{cancelled}</p>
-      </div>
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {[
+        { label: "Today", value: today, tone: "info" as const, accent: "bg-sky-500" },
+        {
+          label: "Upcoming",
+          value: upcoming,
+          tone: "neutral" as const,
+          accent: "bg-teal-500",
+        },
+        {
+          label: "Completed",
+          value: completed,
+          tone: "success" as const,
+          accent: "bg-emerald-500",
+        },
+        {
+          label: "Cancelled",
+          value: cancelled,
+          tone: "danger" as const,
+          accent: "bg-rose-500",
+        },
+      ].map((stat) => (
+        <Card key={stat.label} className="overflow-hidden">
+          <div className={`h-1 w-full ${stat.accent}`} />
+          <CardBody className="space-y-3 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium text-slate-500">{stat.label}</p>
+              <Badge variant={stat.tone}>{stat.label}</Badge>
+            </div>
+            <p className="text-3xl font-semibold tracking-tight text-slate-950">{stat.value}</p>
+            <p className="text-sm leading-6 text-slate-600">
+              Snapshot of your current scheduling activity.
+            </p>
+          </CardBody>
+        </Card>
+      ))}
     </div>
   );
 }

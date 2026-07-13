@@ -1,28 +1,32 @@
+import { combineDateAndTime, formatUTC } from "./date";
+
 type GoogleCalendarEvent = {
   title: string;
   description?: string;
   location?: string;
-  start: Date;
-  end: Date;
+  date: string;
+  startTime: string;
+  endTime: string;
+  timezone?: string | null;
 };
-
-function formatGoogleDate(date: Date) {
-  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
-}
 
 export function generateGoogleCalendarLink({
   title,
   description = "",
   location = "",
-  start,
-  end,
+  date,
+  startTime,
+  endTime,
 }: GoogleCalendarEvent) {
+  const start = combineDateAndTime(date, startTime);
+  const end = combineDateAndTime(date, endTime);
+
   const params = new URLSearchParams({
     action: "TEMPLATE",
     text: title,
     details: description,
     location,
-    dates: `${formatGoogleDate(start)}/${formatGoogleDate(end)}`,
+    dates: `${formatUTC(start)}/${formatUTC(end)}`,
   });
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;

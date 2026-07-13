@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/src/lib/supabase";
 import AIScheduler from "@/src/components/AIScheduler";
 import BookingCard from "@/src/components/BookingCard";
 import type { Appointment } from "@/src/types/appointment";
+import PageContainer from "@/src/components/layout/PageContainer";
+import SectionHeader from "@/src/components/layout/SectionHeader";
+import Badge from "@/src/components/ui/badge";
+import { Card, CardBody } from "@/src/components/ui/card";
 
 type Host = {
   id: string;
@@ -152,7 +157,7 @@ export default function MyBookingsPage() {
   }, []);
 
   if (loading) {
-    return <div className="p-8">Loading bookings...</div>;
+    return <div className="p-8 text-slate-600">Loading bookings...</div>;
   }
 
   const today = new Date().toISOString().split("T")[0];
@@ -180,117 +185,131 @@ export default function MyBookingsPage() {
   );
 
   return (
-    <div className="p-8">
-      <div ref={schedulerRef}>
-        <AIScheduler
-          hosts={hosts}
-          fullName={guestName}
-          email={guestEmail}
-          appointmentToReschedule={appointmentToReschedule}
-          clearReschedule={() => setAppointmentToReschedule(null)}
-        />
+    <main className="relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 top-24 h-96 w-96 rounded-full bg-teal-300/15 blur-3xl" />
+        <div className="absolute -right-28 bottom-0 h-120 w-120 rounded-full bg-sky-300/15 blur-3xl" />
       </div>
 
-      <h1 className="mt-6 mb-6 text-4xl font-bold">
-        My Bookings
-      </h1>
+      <PageContainer className="relative py-8 sm:py-10 lg:py-14">
+        <div className="space-y-8">
+          <div className="flex flex-col gap-4 rounded-4xl border border-slate-200/70 bg-white/75 p-6 shadow-[0_20px_70px_rgba(15,23,42,0.08)] backdrop-blur-xl lg:flex-row lg:items-end lg:justify-between">
+            <div className="space-y-3">
+              <Badge variant="info">Guest dashboard</Badge>
+              <div className="space-y-2">
+                <h1 className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+                  My Bookings
+                </h1>
+                <p className="max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+                  Track pending requests, upcoming sessions, and booking history from one polished
+                  view.
+                </p>
+              </div>
+            </div>
 
-      <hr className="mb-6 border-gray-300" />
-
-      <div className="mt-10 space-y-12">
-        {/* Pending */}
-
-        <section>
-          <h2 className="mb-4 text-2xl font-semibold">
-            Pending Approval
-          </h2>
-
-          <div className="space-y-4">
-            {pendingAppointments.length === 0 ? (
-              <p className="text-gray-500">
-                No pending requests.
-              </p>
-            ) : (
-              pendingAppointments.map((appointment) => (
-                <BookingCard
-                  key={appointment.id}
-                  appointment={appointment}
-                />
-              ))
-            )}
+            <Link
+              href="#scheduler"
+              className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            >
+              Jump to scheduler
+            </Link>
           </div>
-        </section>
 
-        {/* Upcoming */}
-
-        <section>
-          <h2 className="mb-4 text-2xl font-semibold">
-            Upcoming Bookings
-          </h2>
-
-          <div className="space-y-4">
-            {upcomingAppointments.length === 0 ? (
-              <p className="text-gray-500">
-                No upcoming bookings.
-              </p>
-            ) : (
-              upcomingAppointments.map((appointment) => (
-                <BookingCard
-                  key={appointment.id}
-                  appointment={appointment}
-                  onReschedule={handleReschedule}
-                />
-              ))
-            )}
+          <div id="scheduler" ref={schedulerRef}>
+            <AIScheduler
+              hosts={hosts}
+              fullName={guestName}
+              email={guestEmail}
+              appointmentToReschedule={appointmentToReschedule}
+              clearReschedule={() => setAppointmentToReschedule(null)}
+            />
           </div>
-        </section>
 
-        {/* Rejected */}
+          <section className="space-y-4">
+            <SectionHeader
+              eyebrow="Bookings"
+              title="Your appointment timeline"
+              description="Everything is grouped by status so the page is easier to scan on mobile and desktop."
+            />
 
-        <section>
-          <h2 className="mb-4 text-2xl font-semibold">
-            Rejected Requests
-          </h2>
+            <div className="grid gap-4 xl:grid-cols-2">
+              <Card>
+                <CardBody className="space-y-4 p-6">
+                  <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                    Pending Approval
+                  </h2>
+                  <div className="space-y-4">
+                    {pendingAppointments.length === 0 ? (
+                      <p className="text-sm text-slate-500">No pending requests.</p>
+                    ) : (
+                      pendingAppointments.map((appointment) => (
+                        <BookingCard key={appointment.id} appointment={appointment} />
+                      ))
+                    )}
+                  </div>
+                </CardBody>
+              </Card>
 
-          <div className="space-y-4">
-            {rejectedAppointments.length === 0 ? (
-              <p className="text-gray-500">
-                No rejected requests.
-              </p>
-            ) : (
-              rejectedAppointments.map((appointment) => (
-                <BookingCard
-                  key={appointment.id}
-                  appointment={appointment}
-                />
-              ))
-            )}
-          </div>
-        </section>
+              <Card>
+                <CardBody className="space-y-4 p-6">
+                  <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                    Upcoming Bookings
+                  </h2>
+                  <div className="space-y-4">
+                    {upcomingAppointments.length === 0 ? (
+                      <p className="text-sm text-slate-500">No upcoming bookings.</p>
+                    ) : (
+                      upcomingAppointments.map((appointment) => (
+                        <BookingCard
+                          key={appointment.id}
+                          appointment={appointment}
+                          onReschedule={handleReschedule}
+                        />
+                      ))
+                    )}
+                  </div>
+                </CardBody>
+              </Card>
+            </div>
 
-        {/* History */}
+            <div className="grid gap-4 xl:grid-cols-2">
+              <Card>
+                <CardBody className="space-y-4 p-6">
+                  <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                    Rejected Requests
+                  </h2>
+                  <div className="space-y-4">
+                    {rejectedAppointments.length === 0 ? (
+                      <p className="text-sm text-slate-500">No rejected requests.</p>
+                    ) : (
+                      rejectedAppointments.map((appointment) => (
+                        <BookingCard key={appointment.id} appointment={appointment} />
+                      ))
+                    )}
+                  </div>
+                </CardBody>
+              </Card>
 
-        <section>
-          <h2 className="mb-4 text-2xl font-semibold">
-            Booking History
-          </h2>
-
-          <div className="space-y-4">
-            {historyAppointments.length === 0 ? (
-              <p className="text-gray-500">
-                No booking history.
-              </p>
-            ) : (
-              historyAppointments.map((appointment) => (
-                <BookingCard
-                  key={appointment.id}
-                  appointment={appointment}
-                />
-              ))
-            )}
-          </div>
-        </section>
-      </div>
-    </div>
+              <Card>
+                <CardBody className="space-y-4 p-6">
+                  <h2 className="text-xl font-semibold tracking-tight text-slate-950">
+                    Booking History
+                  </h2>
+                  <div className="space-y-4">
+                    {historyAppointments.length === 0 ? (
+                      <p className="text-sm text-slate-500">No booking history.</p>
+                    ) : (
+                      historyAppointments.map((appointment) => (
+                        <BookingCard key={appointment.id} appointment={appointment} />
+                      ))
+                    )}
+                  </div>
+                </CardBody>
+              </Card>
+            </div>
+          </section>
+        </div>
+      </PageContainer>
+    </main>
   );
 }
