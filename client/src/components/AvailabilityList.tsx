@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/src/lib/supabase";
+import Button from "@/src/components/ui/button";
+import { Card, CardBody } from "@/src/components/ui/card";
+import Badge from "@/src/components/ui/badge";
 
 type AvailabilitySlot = {
   id: string;
@@ -80,25 +83,32 @@ export default function AvailabilityList() {
   }
 
   return (
-    <div className="space-y-4 mt-6">
-      {slots.map((slot) => (
-        <div key={slot.id} className="border p-4 rounded flex justify-between">
-          <div>
-            <p className="font-semibold">{DAYS[slot.day_of_week]}</p>
+    <div className="mt-6 space-y-3">
+      {slots.length === 0 ? (
+        <Card>
+          <CardBody className="p-5 text-sm text-slate-600">No availability slots yet.</CardBody>
+        </Card>
+      ) : (
+        slots.map((slot) => (
+          <Card key={slot.id}>
+            <CardBody className="flex items-center justify-between gap-4 p-5">
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <p className="font-semibold text-slate-950">{DAYS[slot.day_of_week]}</p>
+                  <Badge variant="neutral">Weekly</Badge>
+                </div>
+                <p className="text-sm text-slate-600">
+                  {slot.start_time} - {slot.end_time}
+                </p>
+              </div>
 
-            <p>
-              {slot.start_time} - {slot.end_time}
-            </p>
-          </div>
-
-          <button
-            onClick={() => deleteSlot(slot.id)}
-            className="bg-red-500 text-white px-3 py-1 rounded"
-          >
-            Delete
-          </button>
-        </div>
-      ))}
+              <Button variant="danger" size="sm" onClick={() => deleteSlot(slot.id)}>
+                Delete
+              </Button>
+            </CardBody>
+          </Card>
+        ))
+      )}
     </div>
   );
 }
