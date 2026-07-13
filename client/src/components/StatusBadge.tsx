@@ -1,4 +1,5 @@
 import type { Appointment } from "@/src/types/appointment";
+import Badge from "@/src/components/ui/badge";
 
 type Props = {
   status: Appointment["status"];
@@ -6,40 +7,20 @@ type Props = {
 
 export default function StatusBadge({ status }: Props) {
   if (status === "pending") {
-    return (
-      <span className="bg-yellow-500 text-white px-3 py-1 rounded-full text-sm">
-        Pending
-      </span>
-    );
+    return <Badge variant="warning">Pending</Badge>;
   }
 
   if (status === "scheduled") {
-    return (
-      <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm">
-        Scheduled
-      </span>
-    );
+    return <Badge variant="info">Scheduled</Badge>;
   }
 
   if (status === "completed") {
-    return (
-      <span className="bg-green-500 text-white px-3 py-1 rounded-full text-sm">
-        Completed
-      </span>
-    );
+    return <Badge variant="success">Completed</Badge>;
   }
 
   if (status === "rejected") {
-    return (
-      <span className="bg-orange-500 text-white px-3 py-1 rounded-full text-sm">
-        Rejected
-      </span>
-    );
+    return <Badge variant="danger">Rejected</Badge>;
   }
 
-  return (
-    <span className="bg-red-500 text-white px-3 py-1 rounded-full text-sm">
-      Cancelled
-    </span>
-  );
+  return <Badge variant="neutral">Cancelled</Badge>;
 }
