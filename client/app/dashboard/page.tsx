@@ -174,9 +174,9 @@ export default function Dashboard() {
               description="Use the same interface to set working hours, create appointments, and review incoming requests."
             />
 
-            <div className="grid gap-4 xl:grid-cols-2">
-              <Card>
-                <CardBody className="space-y-4 p-6">
+            <div className="grid items-stretch gap-4 xl:grid-cols-2">
+              <Card className="flex h-[44rem] flex-col overflow-hidden">
+                <CardBody className="flex h-full flex-col space-y-4 p-6">
                   <div className="space-y-1">
                     <h2 className="text-xl font-semibold tracking-tight text-slate-950">
                       Availability
@@ -185,13 +185,15 @@ export default function Dashboard() {
                       Define working windows with a cleaner card layout.
                     </p>
                   </div>
-                  <AvailabilityForm />
-                  <AvailabilityList />
+                  <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+                    <AvailabilityForm />
+                    <AvailabilityList />
+                  </div>
                 </CardBody>
               </Card>
 
-              <Card>
-                <CardBody className="space-y-4 p-6">
+              <Card className="flex h-[44rem] flex-col overflow-hidden">
+                <CardBody className="flex h-full flex-col space-y-4 p-6">
                   <div className="space-y-1">
                     <h2 className="text-xl font-semibold tracking-tight text-slate-950">
                       Appointment creation
@@ -200,7 +202,9 @@ export default function Dashboard() {
                       Create and confirm sessions without the page feeling cramped.
                     </p>
                   </div>
-                  <AppointmentForm />
+                  <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+                    <AppointmentForm />
+                  </div>
                 </CardBody>
               </Card>
             </div>
